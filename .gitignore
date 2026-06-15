@@ -1,0 +1,10 @@
+node_modules/
+web/node_modules/
+web/dist/
+.env
+web/.env
+logs/
+*.log
+.DS_Store
+uploads/avatars/
+
