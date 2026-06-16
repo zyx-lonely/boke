@@ -366,7 +366,7 @@ const createAuthRoutes = (pool, authMiddleware, adminMiddleware, logOperation, c
 
       const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, jwtSecret, { expiresIn: '8h' });
 
-      await logOperation({ user }, '管理员登录', 'user', user.id, { username });
+      await logOperation(req, '管理员登录', 'user', user.id, { username });
 
       res.json({ ok: true, token, username: user.username, role: user.role });
     } catch (error) {
