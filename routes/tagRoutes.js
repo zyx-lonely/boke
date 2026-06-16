@@ -29,6 +29,10 @@ const createTagRoutes = (pool, authMiddleware, adminMiddleware, logOperation, ge
 
   router.get('/api/resources/:id/tags', async (req, res) => {
     try {
+      const cacheKey = `resource_tags:${req.params.id}`;
+      const cached = getCachedData(cacheKey);
+      if (cached) return res.json(cached);
+
       const rows = await withConn(async (conn) => {
         const [rows] = await conn.query(`
           SELECT t.id, t.name
@@ -38,6 +42,7 @@ const createTagRoutes = (pool, authMiddleware, adminMiddleware, logOperation, ge
         `, [req.params.id]);
         return rows;
       });
+      setCachedData(cacheKey, rows);
       res.json(rows);
     } catch (error) {
       res.status(500).json({ message: '获取资源标签失败' });
