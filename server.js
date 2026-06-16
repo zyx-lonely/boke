@@ -185,7 +185,7 @@ if (require.main === module) {
     const server = app.listen(port, () => {
       logger.info(`服务器已启动: http://localhost:${port}`);
       logger.info(`后台管理: http://localhost:${port}/admin`);
-      logger.info(`登录账号: admin / admin123`);
+      logger.info(`默认管理员账号: admin（密码请查看上方启动日志）`);
     });
 
     const shutdown = (signal) => {
