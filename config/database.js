@@ -249,7 +249,7 @@ async function initDatabase() {
         title VARCHAR(255) NOT NULL,
         content TEXT,
         link VARCHAR(500),
-        read TINYINT(1) DEFAULT 0,
+        \`read\` TINYINT(1) DEFAULT 0,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
