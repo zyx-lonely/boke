@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createTagRoutes = (authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
+const createTagRoutes = (authMiddleware, adminMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
   const router = express.Router();
 
   router.get('/api/tags', async (req, res) => {
@@ -49,7 +49,7 @@ const createTagRoutes = (authMiddleware, adminMiddleware, logOperation, getCache
     }
   });
 
-  router.post('/api/resources/:id/tags', authMiddleware, async (req, res) => {
+  router.post('/api/resources/:id/tags', authMiddleware, editorMiddleware, async (req, res) => {
     const { tag_ids } = req.body;
 
     if (!Array.isArray(tag_ids)) {

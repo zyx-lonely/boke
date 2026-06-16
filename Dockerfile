@@ -12,9 +12,12 @@ COPY web/ ./web/
 RUN cd web && npm run build
 
 FROM node:20-alpine
-RUN apk add --no-cache tzdata
+RUN apk add --no-cache tzdata && \
+    addgroup -S appgroup && adduser -S appuser -G appgroup
 WORKDIR /app
 COPY --from=backend-build /app /app
 COPY --from=frontend-build /app/web/dist ./web/dist
+RUN chown -R appuser:appgroup /app
+USER appuser
 EXPOSE 3000
 CMD ["node", "server.js"]

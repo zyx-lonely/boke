@@ -21,6 +21,7 @@ const createCommentRoutes = (pool, authMiddleware, adminMiddleware) => {
   router.post(
     '/api/resources/:id/comments',
     validate(commentValidations),
+    authMiddleware,
     controller.createComment.bind(controller)
   );
   

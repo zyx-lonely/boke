@@ -1,6 +1,9 @@
-const express = require('express');
+  const express = require('express');
 const bcrypt = require('bcrypt');
 const { withConn } = require('../config/database');
+
+const ALLOWED_ROLES = ['admin', 'editor', 'user'];
+const ALLOWED_STATUSES = ['active', 'disabled'];
 
 const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
   const router = express.Router();
@@ -25,11 +28,15 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
       return res.status(400).json({ message: '用户名和密码不能为空' });
     }
 
+    if (!ALLOWED_ROLES.includes(role)) {
+      return res.status(400).json({ message: `角色必须是以下之一: ${ALLOWED_ROLES.join(', ')}` });
+    }
+
     try {
-      await withConn(async (conn) => {
+      const result = await withConn(async (conn) => {
         const [existing] = await conn.query(`SELECT id FROM users WHERE username = ?`, [username]);
         if (existing.length > 0) {
-          return res.status(400).json({ message: '用户名已存在' });
+          return { exists: true };
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
@@ -37,8 +44,13 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
 
         await logOperation(req, '创建用户', 'user', result.insertId, { username, role });
         
-        res.status(201).json({ id: result.insertId, username, email, role });
+        return { exists: false, id: result.insertId, username, email, role };
       });
+
+      if (result.exists) {
+        return res.status(400).json({ message: '用户名已存在' });
+      }
+      res.status(201).json({ id: result.id, username: result.username, email: result.email, role: result.role });
     } catch (error) {
       console.error('创建用户失败:', error);
       res.status(500).json({ message: '创建用户失败' });
@@ -47,12 +59,19 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
 
   router.put('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
     const { username, email, role, status, password } = req.body;
+
+    if (role && !ALLOWED_ROLES.includes(role)) {
+      return res.status(400).json({ message: `角色必须是以下之一: ${ALLOWED_ROLES.join(', ')}` });
+    }
+    if (status && !ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({ message: `状态必须是以下之一: ${ALLOWED_STATUSES.join(', ')}` });
+    }
     
     try {
-      await withConn(async (conn) => {
+      const result = await withConn(async (conn) => {
         const [existing] = await conn.query(`SELECT id FROM users WHERE id = ?`, [req.params.id]);
         if (existing.length === 0) {
-          return res.status(404).json({ message: '用户不存在' });
+          return { notFound: true };
         }
 
         const updates = [];
@@ -77,8 +96,13 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
 
         await logOperation(req, '更新用户', 'user', req.params.id, { username, email, role, status });
         
-        res.json(rows[0]);
+        return { notFound: false, user: rows[0] };
       });
+
+      if (result.notFound) {
+        return res.status(404).json({ message: '用户不存在' });
+      }
+      res.json(result.user);
     } catch (error) {
       console.error('更新用户失败:', error);
       res.status(500).json({ message: '更新用户失败' });
@@ -92,7 +116,7 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
 
     try {
       const result = await withConn(async (conn) => {
-        const [result] = await conn.query(`DELETE FROM users WHERE id = ?`, [req.params.id]);
+        const [result] = await conn.query(`DELETE FROM users WHERE id = ?`, [parseInt(req.params.id)]);
         return result;
       });
 
@@ -114,6 +138,10 @@ const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
     
     if (!newPassword) {
       return res.status(400).json({ message: '新密码不能为空' });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ message: '密码长度至少8位' });
     }
 
     try {

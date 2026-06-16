@@ -51,7 +51,8 @@ const globalLimiterMiddleware = globalLimiter.middleware();
 
 app.use((req, res, next) => {
   if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp)$/)) return next();
-  return globalLimiterMiddleware(req, res, next);
+  if (req.path.startsWith('/api/')) return globalLimiterMiddleware(req, res, next);
+  return next();
 });
 
 const ALLOWED_ORIGINS = [
@@ -99,7 +100,18 @@ const compression = require('compression');
 app.use(compression());
 
 app.use(helmet({
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net", "https://fonts.googleapis.com"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdn.jsdelivr.net"],
+      imgSrc: ["'self'", "data:", "blob:"],
+      connectSrc: ["'self'"],
+      frameSrc: ["'none'"],
+      objectSrc: ["'none'"]
+    }
+  },
   crossOriginEmbedderPolicy: false
 }));
 
@@ -143,8 +155,8 @@ app.use(createSubscriptionRoutes(authMiddleware));
 app.use(createRatingRoutes(authMiddleware));
 app.use(createReportRoutes(authMiddleware));
 app.use(createAdminRoutes(authMiddleware, adminMiddleware, logOperation));
-app.use(createTagRoutes(authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
-app.use(createImportExportRoutes(authMiddleware, editorMiddleware, logOperation));
+app.use(createTagRoutes(authMiddleware, adminMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache));
+app.use(createImportExportRoutes(authMiddleware, adminMiddleware, editorMiddleware, logOperation));
 app.use(createSettingsRoutes(authMiddleware, adminMiddleware));
 app.use(createProfileRoutes(authMiddleware));
 app.use(createSearchRoutes());

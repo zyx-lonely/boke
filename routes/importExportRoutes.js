@@ -2,7 +2,7 @@ const express = require('express');
 const { withConn } = require('../config/database');
 const parseRow = require('../utils/parseRow');
 
-const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation) => {
+const createImportExportRoutes = (authMiddleware, adminMiddleware, editorMiddleware, logOperation) => {
   const router = express.Router();
 
   function parseCSV(text) {
@@ -58,7 +58,7 @@ const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation
     return csvRows.join('\n');
   }
 
-  router.get('/api/admin/export/csv', authMiddleware, async (req, res) => {
+  router.get('/api/admin/export/csv', authMiddleware, adminMiddleware, async (req, res) => {
     try {
       const result = await withConn(async (conn) => {
         const [rows] = await conn.query(`
@@ -82,7 +82,7 @@ const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation
     }
   });
 
-  router.get('/api/admin/export/json', authMiddleware, async (req, res) => {
+  router.get('/api/admin/export/json', authMiddleware, adminMiddleware, async (req, res) => {
     try {
       const result = await withConn(async (conn) => {
         const [rows] = await conn.query(`

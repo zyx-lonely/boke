@@ -201,7 +201,7 @@ const createAdminRoutes = (authMiddleware, adminMiddleware, logOperation) => {
   });
 
   router.delete('/api/admin/logs/clean', authMiddleware, adminMiddleware, async (req, res) => {
-    const days = Number(req.query.days) || 30;
+    const days = Math.max(Number(req.query.days) || 30, 1);
 
     try {
       const result = await withConn(async (conn) => {
@@ -282,13 +282,31 @@ const createAdminRoutes = (authMiddleware, adminMiddleware, logOperation) => {
   });
 
   router.post('/api/admin/upload', authMiddleware, adminMiddleware, upload.array('images', 10), (req, res) => {
-    const results = (req.files || []).map(file => ({
-      filename: file.filename,
-      url: `/uploads/${file.filename}`,
-      size: file.size,
-      originalName: file.originalname
-    }));
-    res.json({ success: true, files: results });
+    const imageMagicBytes = {
+      jpg: [0xFF, 0xD8, 0xFF],
+      png: [0x89, 0x50, 0x4E, 0x47],
+      gif: [0x47, 0x49, 0x46],
+      webp: [0x52, 0x49, 0x46, 0x46]
+    };
+
+    const validFiles = [];
+    for (const file of (req.files || [])) {
+      const buf = fs.readFileSync(file.path);
+      const isValid = Object.values(imageMagicBytes).some(sig =>
+        sig.every((b, i) => buf[i] === b)
+      );
+      if (isValid) {
+        validFiles.push({
+          filename: file.filename,
+          url: `/uploads/${file.filename}`,
+          size: file.size,
+          originalName: file.originalname
+        });
+      } else {
+        fs.unlinkSync(file.path);
+      }
+    }
+    res.json({ success: true, files: validFiles });
   });
 
   router.get('/api/docs', (req, res) => {

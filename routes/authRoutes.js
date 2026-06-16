@@ -8,6 +8,7 @@ const path = require('path');
 const fs = require('fs');
 const { withConn, pool } = require('../config/database');
 const { sendMail } = require('../services/emailService');
+const { logger } = require('../middleware/logger');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
 
@@ -98,7 +99,7 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
       passport.authenticate('github', { session: false, failureRedirect: '/login' }, (err, user) => {
         if (err || !user) return res.redirect('/login');
         const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        res.redirect(`/?token=${token}`);
+        res.redirect(`/#token=${token}`);
       })(req, res, next);
     });
   }
@@ -129,6 +130,9 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
   }
 
   router.post('/api/auth/register', async (req, res) => {
+    const captchaError = verifyCaptcha(req, res);
+    if (captchaError) return captchaError;
+
     let { username, password, email } = req.body;
 
     if (!username || !password) {
@@ -213,9 +217,23 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
     } catch { res.status(500).json({ message: '验证失败' }); }
   });
 
+  const forgotPasswordAttempts = new Map();
+
   router.post('/api/auth/forgot-password', async (req, res) => {
     const { email } = req.body;
     if (!email) return res.status(400).json({ message: '请输入邮箱' });
+
+    const clientIp = getClientIp(req);
+    const attemptKey = `forgot:${clientIp}:${email}`;
+    const attempts = forgotPasswordAttempts.get(attemptKey) || { count: 0, lastAttempt: 0 };
+
+    if (attempts.count >= 3 && Date.now() - attempts.lastAttempt < 3600000) {
+      return res.status(429).json({ message: '发送过于频繁，请1小时后再试' });
+    }
+
+    attempts.count++;
+    attempts.lastAttempt = Date.now();
+    forgotPasswordAttempts.set(attemptKey, attempts);
     try {
       await withConn(async (conn) => {
         const [users] = await conn.query('SELECT id, username FROM users WHERE email = ? AND status = "active"', [email]);
@@ -261,6 +279,9 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
   });
 
   router.post('/api/auth/login', async (req, res) => {
+    const captchaError = verifyCaptcha(req, res);
+    if (captchaError) return captchaError;
+
     let { username, password } = req.body;
 
     if (!username || !password) {

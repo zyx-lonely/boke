@@ -48,6 +48,7 @@ describe('评论接口测试', () => {
     it('有效的评论ID应成功点赞', async () => {
       const createRes = await request(app)
         .post('/api/resources/1/comments')
+        .set('Authorization', `Bearer ${testToken}`)
         .send({ username: 'testuser', content: '测试评论' });
       const commentId = createRes.body.id;
 
@@ -62,9 +63,17 @@ describe('评论接口测试', () => {
   });
 
   describe('POST /api/resources/:id/comments', () => {
+    it('未登录应返回401', async () => {
+      const response = await request(app)
+        .post('/api/resources/1/comments')
+        .send({ username: 'testuser', content: '测试评论' });
+      expect(response.status).toBe(401);
+    });
+
     it('缺少用户名应返回400', async () => {
       const response = await request(app)
         .post('/api/resources/1/comments')
+        .set('Authorization', `Bearer ${testToken}`)
         .send({ content: '测试评论' });
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -74,6 +83,7 @@ describe('评论接口测试', () => {
     it('缺少评论内容应返回400', async () => {
       const response = await request(app)
         .post('/api/resources/1/comments')
+        .set('Authorization', `Bearer ${testToken}`)
         .send({ username: 'testuser' });
       expect(response.status).toBe(400);
       expect(response.body).toHaveProperty('errors');
@@ -83,6 +93,7 @@ describe('评论接口测试', () => {
     it('不存在的资源ID应返回404', async () => {
       const response = await request(app)
         .post('/api/resources/99999/comments')
+        .set('Authorization', `Bearer ${testToken}`)
         .send({ username: 'testuser', content: '测试评论' });
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error.message', '资源不存在');
@@ -91,6 +102,7 @@ describe('评论接口测试', () => {
     it('有效的评论应成功创建', async () => {
       const response = await request(app)
         .post('/api/resources/1/comments')
+        .set('Authorization', `Bearer ${testToken}`)
         .send({ username: 'testuser', content: '测试评论内容' });
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');

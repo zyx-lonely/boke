@@ -9,7 +9,8 @@ const dbConfig = {
   database: process.env.DB_NAME || 'boke',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20,
+  connectTimeout: 10000,
   charset: 'utf8mb4'
 };
 

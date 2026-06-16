@@ -85,7 +85,7 @@ const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, ge
 
   router.get('/api/resources/hot', async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit) || 10;
+      const limit = Math.min(parseInt(req.query.limit) || 10, 100);
       const cacheKey = `hot:${limit}`;
       const cached = getCachedData(cacheKey);
       if (cached) return res.json(cached);
@@ -111,7 +111,7 @@ const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, ge
 
   router.get('/api/resources/newest', async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit) || 10;
+      const limit = Math.min(parseInt(req.query.limit) || 10, 100);
       const cacheKey = `newest:${limit}`;
       const cached = getCachedData(cacheKey);
       if (cached) return res.json(cached);
@@ -137,7 +137,7 @@ const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, ge
 
   router.get('/api/resources/recommend', async (req, res) => {
     try {
-      const limit = parseInt(req.query.limit) || 6;
+      const limit = Math.min(parseInt(req.query.limit) || 6, 100);
       const rows = await withConn(async (conn) => {
         const [rows] = await conn.query(`
           SELECT r.*, c.name as category_name, c.icon as category_icon 
@@ -208,7 +208,9 @@ const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, ge
       if (rows.length === 0) return res.status(404).json({ message: '资源不存在' });
       res.json({ hits: rows[0].hits });
     }).catch(error => {
-      res.status(500).json({ message: '更新浏览量失败' });
+      if (!res.headersSent) {
+        res.status(500).json({ message: '更新浏览量失败' });
+      }
     });
   });
 
@@ -259,12 +261,15 @@ const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, ge
       return res.status(400).json({ message: '标题和简介不能为空' });
     }
 
+    const isPinned = req.user.role === 'admin' ? (pinned || false) : false;
+    const finalStatus = req.user.role === 'admin' ? status : 'pending';
+
     try {
       const result = await withConn(async (conn) => {
         const [result] = await conn.query(`
           INSERT INTO resources (title, software_name, category_id, license, project_url, summary, content, cloud_drives, pinned, status)
           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `, [title, software_name || null, category_id || null, license || null, project_url || null, summary, content || null, typeof cloud_drives === 'string' ? cloud_drives : JSON.stringify(cloud_drives || []), pinned || false, status]);
+        `, [title, software_name || null, category_id || null, license || null, project_url || null, summary, content || null, typeof cloud_drives === 'string' ? cloud_drives : JSON.stringify(cloud_drives || []), isPinned, finalStatus]);
         return result.insertId;
       });
       clearCache('hot:10');

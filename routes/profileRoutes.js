@@ -22,6 +22,9 @@ const createProfileRoutes = (authMiddleware) => {
 
   router.put('/api/user/profile', authMiddleware, async (req, res) => {
     const { email } = req.body;
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: '邮箱格式不正确' });
+    }
     try {
       await withConn(async (conn) => {
         await conn.query('UPDATE users SET email = ?, email_verified = 0, verification_token = NULL WHERE id = ?', [email || null, req.user.id]);

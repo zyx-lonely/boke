@@ -77,25 +77,7 @@ const createFavoriteRoutes = (authMiddleware) => {
     }
   });
 
-  router.get('/api/favorites', async (req, res) => {
-    const jwtSecret = process.env.JWT_SECRET;
-    const rawToken = req.headers.authorization;
-    const token = rawToken ? (rawToken.startsWith('Bearer ') ? rawToken.slice(7) : rawToken) : null;
-    let userId = 0;
-
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, jwtSecret);
-        userId = decoded.id;
-      } catch {
-        userId = 0;
-      }
-    }
-
-    if (userId === 0) {
-      return res.json({ items: [] });
-    }
-
+  router.get('/api/favorites', authMiddleware, async (req, res) => {
     try {
       const rows = await withConn(async (conn) => {
         const [rows] = await conn.query(`
@@ -103,7 +85,7 @@ const createFavoriteRoutes = (authMiddleware) => {
           JOIN favorites f ON r.id = f.resource_id
           WHERE f.user_id = ?
           ORDER BY f.created_at DESC
-        `, [userId]);
+        `, [req.user.id]);
         return rows;
       });
 
@@ -113,29 +95,10 @@ const createFavoriteRoutes = (authMiddleware) => {
     }
   });
 
-  router.delete('/api/favorites/:resourceId', async (req, res) => {
-    const jwt = require('jsonwebtoken');
-    const jwtSecret = process.env.JWT_SECRET;
-    const rawToken = req.headers.authorization;
-    const token = rawToken ? (rawToken.startsWith('Bearer ') ? rawToken.slice(7) : rawToken) : null;
-    let userId = 0;
-
-    if (token) {
-      try {
-        const decoded = jwt.verify(token, jwtSecret);
-        userId = decoded.id;
-      } catch {
-        return res.status(401).json({ message: '未登录' });
-      }
-    }
-
-    if (userId === 0) {
-      return res.status(401).json({ message: '未登录' });
-    }
-
+  router.delete('/api/favorites/:resourceId', authMiddleware, async (req, res) => {
     try {
       const result = await withConn(async (conn) => {
-        const [result] = await conn.query(`DELETE FROM favorites WHERE user_id = ? AND resource_id = ?`, [userId, req.params.resourceId]);
+        const [result] = await conn.query(`DELETE FROM favorites WHERE user_id = ? AND resource_id = ?`, [req.user.id, req.params.resourceId]);
         return result;
       });
 

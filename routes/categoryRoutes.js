@@ -52,10 +52,10 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
         return res.status(400).json({ message: '分类名称不能为空' });
       }
       
-      await withConn(async (conn) => {
+      const result = await withConn(async (conn) => {
         const [existing] = await conn.query('SELECT id FROM categories WHERE name = ?', [name.trim()]);
         if (existing.length > 0) {
-          return res.status(400).json({ message: '分类已存在' });
+          return { exists: true };
         }
         
         const [result] = await conn.query(`INSERT INTO categories (name, description, icon, sort_order) VALUES (?, ?, ?, ?)`, [name.trim(), description || '', icon || '', sort_order || 0]);
@@ -63,8 +63,13 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
         clearCache('categories');
         await logOperation(req, '创建分类', 'category', result.insertId, { name });
         
-        res.json({ ok: true, message: '分类创建成功' });
+        return { exists: false, id: result.insertId };
       });
+
+      if (result.exists) {
+        return res.status(400).json({ message: '分类已存在' });
+      }
+      res.json({ ok: true, message: '分类创建成功' });
     } catch (error) {
       console.error('创建分类失败:', error);
       res.status(500).json({ message: '创建分类失败' });
@@ -91,10 +96,10 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
     try {
       const { name, description, icon, sort_order, status } = req.body;
       
-      await withConn(async (conn) => {
+      const result = await withConn(async (conn) => {
         const [checkRows] = await conn.query('SELECT id FROM categories WHERE id = ?', [req.params.id]);
         if (checkRows.length === 0) {
-          return res.status(404).json({ message: '分类不存在' });
+          return { notFound: true };
         }
         
         const updates = [];
@@ -113,8 +118,13 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
         clearCache('categories');
         await logOperation(req, '更新分类', 'category', req.params.id, { name });
         
-        res.json({ ok: true, message: '分类更新成功' });
+        return { notFound: false };
       });
+
+      if (result.notFound) {
+        return res.status(404).json({ message: '分类不存在' });
+      }
+      res.json({ ok: true, message: '分类更新成功' });
     } catch (error) {
       console.error('更新分类失败:', error);
       res.status(500).json({ message: '更新分类失败' });
@@ -123,11 +133,11 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
 
   router.delete('/api/admin/categories/:id', authMiddleware, adminMiddleware, async (req, res) => {
     try {
-      await withConn(async (conn) => {
+      const result = await withConn(async (conn) => {
         const [count] = await conn.query('SELECT COUNT(*) as count FROM resources WHERE category_id = ?', [req.params.id]);
         
         if (count[0].count > 0) {
-          return res.status(400).json({ message: '该分类下存在资源，无法删除' });
+          return { hasResources: true };
         }
         
         await conn.query('DELETE FROM categories WHERE id = ?', [req.params.id]);
@@ -135,8 +145,13 @@ const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, get
         clearCache('categories');
         await logOperation(req, '删除分类', 'category', req.params.id);
         
-        res.json({ ok: true, message: '分类删除成功' });
+        return { hasResources: false };
       });
+
+      if (result.hasResources) {
+        return res.status(400).json({ message: '该分类下存在资源，无法删除' });
+      }
+      res.json({ ok: true, message: '分类删除成功' });
     } catch (error) {
       console.error('删除分类失败:', error);
       res.status(500).json({ message: '删除分类失败' });

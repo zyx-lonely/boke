@@ -46,6 +46,8 @@ const createSettingsRoutes = (authMiddleware, adminMiddleware) => {
     } catch { res.status(500).json({ message: '发送失败' }); }
   });
 
+  const SENSITIVE_KEYS = ['smtp_pass', 'smtp_user', 'jwt_secret', 'db_password'];
+
   router.get('/api/settings', async (req, res, next) => {
     try {
       const rows = await withConn(async (conn) => {
@@ -53,7 +55,11 @@ const createSettingsRoutes = (authMiddleware, adminMiddleware) => {
         return rows;
       });
       const settings = {};
-      rows.forEach(r => { settings[r.key] = r.value });
+      rows.forEach(r => {
+        if (!SENSITIVE_KEYS.includes(r.key)) {
+          settings[r.key] = r.value;
+        }
+      });
       res.json(settings);
     } catch (e) { next(e) }
   });
