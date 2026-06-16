@@ -130,7 +130,7 @@ app.use(createResourceRoutes(pool, authMiddleware, editorMiddleware, logOperatio
 app.use(createCategoryRoutes(pool, authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
 app.use(createStatsRoutes(pool, authMiddleware, getCachedData, setCachedData));
 app.use(createFavoriteRoutes(pool, authMiddleware));
-app.use(createRankingRoutes(pool));
+app.use(createRankingRoutes(pool, getCachedData, setCachedData));
 app.use(createSubscriptionRoutes(pool, authMiddleware));
 app.use(createRatingRoutes(pool, authMiddleware));
 app.use(createReportRoutes(pool, authMiddleware));
