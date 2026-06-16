@@ -210,7 +210,13 @@ async function initDatabase() {
       ('site_url', 'http://localhost:3000'),
       ('allow_register', 'true'),
       ('logo_text', '资源分享'),
-      ('footer_text', '分享优质开源软件资源')
+      ('footer_text', '分享优质开源软件资源'),
+      ('smtp_host', ''),
+      ('smtp_port', '587'),
+      ('smtp_secure', 'false'),
+      ('smtp_user', ''),
+      ('smtp_pass', ''),
+      ('smtp_from', '')
     `);
 
     await createIndexes(conn);

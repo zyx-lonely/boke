@@ -8,6 +8,7 @@
           <router-link to="/" @click="mobileOpen=false">首页</router-link>
           <router-link to="/ranking" @click="mobileOpen=false">排行榜</router-link>
           <router-link v-if="userStore.isLoggedIn" to="/favorites" @click="mobileOpen=false">收藏夹</router-link>
+          <router-link v-if="userStore.isLoggedIn" to="/profile" @click="mobileOpen=false">个人中心</router-link>
         </nav>
         <div class="auth-links">
           <button class="theme-toggle" @click="appStore.toggleTheme()" :title="appStore.isDark?'浅色模式':'深色模式'">{{ appStore.isDark ? '☀️' : '🌙' }}</button>
@@ -30,6 +31,7 @@
           <router-link to="/" @click="mobileOpen=false">首页</router-link>
           <router-link to="/ranking" @click="mobileOpen=false">排行榜</router-link>
           <router-link v-if="userStore.isLoggedIn" to="/favorites" @click="mobileOpen=false">收藏夹</router-link>
+          <router-link v-if="userStore.isLoggedIn" to="/profile" @click="mobileOpen=false">个人中心</router-link>
         </nav>
         <div class="mobile-auth">
           <button class="theme-toggle" @click="appStore.toggleTheme()" :title="appStore.isDark?'浅色模式':'深色模式'">{{ appStore.isDark ? '☀️' : '🌙' }}</button>

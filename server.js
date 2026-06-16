@@ -32,6 +32,7 @@ const createAdminRoutes = require('./routes/adminRoutes');
 const createTagRoutes = require('./routes/tagRoutes');
 const createImportExportRoutes = require('./routes/importExportRoutes');
 const createSettingsRoutes = require('./routes/settingsRoutes');
+const createProfileRoutes = require('./routes/profileRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -139,6 +140,7 @@ app.use(createAdminRoutes(authMiddleware, adminMiddleware, logOperation));
 app.use(createTagRoutes(authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
 app.use(createImportExportRoutes(authMiddleware, editorMiddleware, logOperation));
 app.use(createSettingsRoutes(authMiddleware, adminMiddleware));
+app.use(createProfileRoutes(authMiddleware));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

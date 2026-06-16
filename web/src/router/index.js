@@ -22,6 +22,16 @@ const routes = [
     component: () => import('@/views/Favorites.vue'),
   },
   {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('@/views/Profile.vue'),
+  },
+  {
+    path: '/my-comments',
+    name: 'MyComments',
+    component: () => import('@/views/MyComments.vue'),
+  },
+  {
     path: '/admin',
     component: () => import('@/views/admin/Layout.vue'),
     redirect: '/admin/dashboard',

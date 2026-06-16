@@ -106,7 +106,8 @@ describe('CommentService', () => {
 
   describe('approveComment', () => {
     it('should approve a comment', async () => {
-      connection.query.resolves([{ affectedRows: 1 }]);
+      connection.query.onFirstCall().resolves([[{ id: 1, email: 'user@test.com', username: 'test', resource_title: 'Test', content: 'hello' }]]);
+      connection.query.onSecondCall().resolves([{ affectedRows: 1 }]);
 
       const result = await service.approveComment(1);
 
@@ -114,7 +115,7 @@ describe('CommentService', () => {
     });
 
     it('should throw AppError if comment not found', async () => {
-      connection.query.resolves([{ affectedRows: 0 }]);
+      connection.query.resolves([[]]);
 
       await assert.rejects(
         service.approveComment(999),
@@ -125,7 +126,8 @@ describe('CommentService', () => {
 
   describe('rejectComment', () => {
     it('should reject a comment', async () => {
-      connection.query.resolves([{ affectedRows: 1 }]);
+      connection.query.onFirstCall().resolves([[{ id: 1, email: 'user@test.com', username: 'test', resource_title: 'Test', content: 'hello' }]]);
+      connection.query.onSecondCall().resolves([{ affectedRows: 1 }]);
 
       const result = await service.rejectComment(1);
 

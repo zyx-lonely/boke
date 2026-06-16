@@ -1,5 +1,6 @@
 const { logger } = require('../middleware/logger');
 const { AppError } = require('../middleware/errorHandler');
+const { sendCommentNotification } = require('./emailService');
 
 class CommentService {
   constructor(pool) {
@@ -142,11 +143,18 @@ class CommentService {
   async approveComment(id) {
     try {
       const conn = await this.pool.getConnection();
-      const [result] = await conn.query(`UPDATE comments SET status = 'approved' WHERE id = ?`, [id]);
+      const [commentRows] = await conn.query(
+        `SELECT c.*, r.title as resource_title FROM comments c LEFT JOIN resources r ON c.resource_id = r.id WHERE c.id = ?`, [id]
+      );
+      if (commentRows.length === 0) { conn.release(); throw new AppError('评论不存在', 404); }
+
+      await conn.query(`UPDATE comments SET status = 'approved' WHERE id = ?`, [id]);
       conn.release();
 
-      if (result.affectedRows === 0) {
-        throw new AppError('评论不存在', 404);
+      const c = commentRows[0];
+      if (c.email) {
+        sendCommentNotification(this.pool, c.email, c.username, c.resource_title, 'approved', c.content)
+          .catch(e => logger.warn('发送审核通知邮件失败', { error: e.message }));
       }
 
       return { ok: true };
@@ -160,11 +168,18 @@ class CommentService {
   async rejectComment(id) {
     try {
       const conn = await this.pool.getConnection();
-      const [result] = await conn.query(`UPDATE comments SET status = 'rejected' WHERE id = ?`, [id]);
+      const [commentRows] = await conn.query(
+        `SELECT c.*, r.title as resource_title FROM comments c LEFT JOIN resources r ON c.resource_id = r.id WHERE c.id = ?`, [id]
+      );
+      if (commentRows.length === 0) { conn.release(); throw new AppError('评论不存在', 404); }
+
+      await conn.query(`UPDATE comments SET status = 'rejected' WHERE id = ?`, [id]);
       conn.release();
 
-      if (result.affectedRows === 0) {
-        throw new AppError('评论不存在', 404);
+      const c = commentRows[0];
+      if (c.email) {
+        sendCommentNotification(this.pool, c.email, c.username, c.resource_title, 'rejected', c.content)
+          .catch(e => logger.warn('发送审核通知邮件失败', { error: e.message }));
       }
 
       return { ok: true };
