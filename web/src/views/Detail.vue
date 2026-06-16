@@ -29,7 +29,7 @@
             </div>
             <div v-if="resource.content" class="section-card">
               <h3>详细说明</h3>
-              <div class="rich-content" v-html="resource.content" ref="richContent"></div>
+              <div class="rich-content" v-html="sanitizedContent" ref="richContent"></div>
             </div>
             <div v-if="resource.cloud_drives?.length" class="section-card">
               <h3>下载地址</h3>
@@ -183,6 +183,10 @@ const reportLoading = ref(false)
 const topLevelComments = computed(() => comments.value.filter(c => !c.parent_id))
 const childComments = (parentId) => comments.value.filter(c => c.parent_id === parentId)
 const commentCount = computed(() => comments.value.length)
+const sanitizedContent = computed(() => {
+  if (!resource.value?.content) return ''
+  return DOMPurify.sanitize(resource.value.content)
+})
 
 function formatTime(t) { return t ? new Date(t).toLocaleString('zh-CN') : '' }
 function openDrive(d) { const url = d?.download_url||d?.url; if(url) window.open(url,'_blank') }
