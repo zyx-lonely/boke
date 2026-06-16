@@ -155,6 +155,7 @@ import { commentApi } from '@/api/comment'
 import { favoriteApi } from '@/api/favorite'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 const appStore = useAppStore()
