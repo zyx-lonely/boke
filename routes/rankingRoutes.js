@@ -9,6 +9,12 @@ const createRankingRoutes = (pool, getCachedData, setCachedData) => {
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const offset = parseInt(req.query.offset) || 0;
 
+    const cacheKey = `rankings:${type}:${limit}:${offset}`;
+    if (offset === 0 && getCachedData) {
+      const cached = getCachedData(cacheKey);
+      if (cached) return res.json(cached);
+    }
+
     const validOrderBy = {
       views: 'r.hits DESC',
       favorites: 'favorites_count DESC',
@@ -33,7 +39,9 @@ const createRankingRoutes = (pool, getCachedData, setCachedData) => {
         return result;
       });
 
-      res.json({ items: rows });
+      const result = { items: rows };
+      if (offset === 0 && setCachedData) setCachedData(cacheKey, result);
+      res.json(result);
     } catch (error) {
       res.status(500).json({ message: '获取排行榜失败' });
     }
