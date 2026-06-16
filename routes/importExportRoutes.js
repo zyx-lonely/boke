@@ -1,5 +1,6 @@
 const express = require('express');
 const { withConn } = require('../config/database');
+const parseRow = require('../utils/parseRow');
 
 const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation) => {
   const router = express.Router();
@@ -90,12 +91,7 @@ const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation
           LEFT JOIN categories c ON r.category_id = c.id
           ORDER BY r.id DESC
         `);
-        return rows.map(row => ({
-          ...row,
-          cloud_drives: typeof row.cloud_drives === 'string' ? (() => {
-            try { return JSON.parse(row.cloud_drives); } catch { return []; }
-          })() : (row.cloud_drives || [])
-        }));
+        return rows.map(parseRow);
       });
 
       res.setHeader('Content-Type', 'application/json; charset=utf-8');

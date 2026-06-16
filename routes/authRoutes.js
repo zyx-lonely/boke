@@ -71,7 +71,7 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
 
   function sanitizeInput(str) {
     if (typeof str !== 'string') return str;
-    return str.replace(/[<>]/g, '').trim();
+    return str.replace(/[<>"']/g, '').replace(/javascript:/gi, '').trim();
   }
 
   router.get('/api/captcha', (req, res) => {
@@ -369,6 +369,21 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
 
       if (!req.file) {
         return res.status(400).json({ message: '请选择图片文件' });
+      }
+
+      const imageMagicBytes = {
+        jpg: [0xFF, 0xD8, 0xFF],
+        png: [0x89, 0x50, 0x4E, 0x47],
+        gif: [0x47, 0x49, 0x46],
+        webp: [0x52, 0x49, 0x46, 0x46]
+      };
+      const buf = req.file.buffer || fs.readFileSync(req.file.path);
+      const isValidImage = Object.values(imageMagicBytes).some(sig =>
+        sig.every((b, i) => buf[i] === b)
+      );
+      if (!isValidImage) {
+        fs.unlinkSync(req.file.path);
+        return res.status(400).json({ message: '文件不是有效的图片格式' });
       }
 
       const avatarUrl = `/uploads/avatars/${req.file.filename}`;

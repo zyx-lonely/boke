@@ -14,7 +14,8 @@ describe('CommentService', () => {
       release: sinon.stub()
     };
     pool = {
-      getConnection: sinon.stub().resolves(connection)
+      getConnection: sinon.stub().resolves(connection),
+      query: sinon.stub().resolves([[]])
     };
     service = new CommentService(pool);
   });

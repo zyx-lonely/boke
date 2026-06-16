@@ -236,7 +236,11 @@ async function toggleFavorite() {
   } catch(e) { ElMessage.error('操作失败') }
 }
 
-async function likeComment(c) { try { await commentApi.like(c.id); c.likes=(c.likes||0)+1 } catch(e) { ElMessage.error('点赞失败') } }
+async function likeComment(c) {
+  const prev = c.likes
+  c.likes = (c.likes||0) + 1
+  try { await commentApi.like(c.id) } catch(e) { c.likes = prev; ElMessage.error('点赞失败') }
+}
 
 let ratingTimer = null
 async function submitRating(s) {

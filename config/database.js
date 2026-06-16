@@ -185,6 +185,8 @@ async function initDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    try { await conn.query(`ALTER TABLE notifications ADD INDEX idx_notifications_user_read (user_id, \`read\`)`); } catch {}
+
     await conn.query(`
       CREATE TABLE IF NOT EXISTS tags (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -270,6 +272,7 @@ async function initDatabase() {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    try { await conn.query(`ALTER TABLE friend_links ADD INDEX idx_friend_links_status_sort (status, sort_order)`); } catch {}
 
     try {
       await conn.query(`ALTER TABLE resources MODIFY COLUMN status ENUM('draft', 'pending', 'approved', 'rejected') DEFAULT 'pending'`);

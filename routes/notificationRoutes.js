@@ -1,5 +1,6 @@
 const express = require('express');
 const { withConn } = require('../config/database');
+const { logger } = require('../middleware/logger');
 
 const createNotificationRoutes = (authMiddleware) => {
   const router = express.Router();
@@ -41,7 +42,9 @@ async function createNotification(pool, userId, type, title, content, link) {
       'INSERT INTO notifications (user_id, type, title, content, link) VALUES (?, ?, ?, ?, ?)',
       [userId, type, title, content || null, link || null]
     );
-  } catch {}
+  } catch (e) {
+    logger.warn('创建通知失败', { userId, type, error: e.message });
+  }
 }
 
 module.exports = { createNotificationRoutes, createNotification };

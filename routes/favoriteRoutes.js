@@ -1,22 +1,10 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const { withConn } = require('../config/database');
+const parseRow = require('../utils/parseRow');
 
 const createFavoriteRoutes = (authMiddleware) => {
   const router = express.Router();
-
-  function parseRow(row) {
-    const result = {
-      ...row,
-      cloud_drives: typeof row.cloud_drives === 'string' ? (() => {
-        try { return JSON.parse(row.cloud_drives); } catch { return []; }
-      })() : (row.cloud_drives || [])
-    };
-    if (row.favorites_count !== undefined) {
-      result.favorites_count = row.favorites_count;
-    }
-    return result;
-  }
 
   router.get('/api/resources/:id/favorite/check', async (req, res) => {
     const rawToken = req.headers.authorization;

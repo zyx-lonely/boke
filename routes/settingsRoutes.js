@@ -1,5 +1,5 @@
 const express = require('express');
-const { withConn } = require('../config/database');
+const { withConn, pool } = require('../config/database');
 const { sendMail } = require('../services/emailService');
 
 const createSettingsRoutes = (authMiddleware, adminMiddleware) => {
@@ -33,7 +33,6 @@ const createSettingsRoutes = (authMiddleware, adminMiddleware) => {
     try {
       const { email, settings } = req.body;
       if (!email) return res.status(400).json({ message: '请输入测试邮箱' });
-      const pool = (await Promise.resolve().then(() => require('../config/database'))).pool;
       if (settings) {
         for (const [key, value] of Object.entries(settings)) {
           if (key.startsWith('smtp_')) {

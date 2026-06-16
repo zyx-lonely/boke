@@ -1,5 +1,6 @@
 const express = require('express');
 const { withConn } = require('../config/database');
+const parseRow = require('../utils/parseRow');
 
 const createStatsRoutes = (authMiddleware, getCachedData, setCachedData) => {
   const router = express.Router();
@@ -106,14 +107,8 @@ const createStatsRoutes = (authMiddleware, getCachedData, setCachedData) => {
           comments: cs,
           users: us,
           categories: categoryStats,
-          categoryDistribution: categoryStats,
-          commentStats: cs,
           recentResources,
           topResources,
-          resourceTrend,
-          userTrend,
-          hitsTrend: dailyHits,
-          dailyHits,
           trends: {
             resources: resourceTrend,
             users: userTrend,
@@ -326,12 +321,7 @@ const createStatsRoutes = (authMiddleware, getCachedData, setCachedData) => {
         const [result] = await conn.query(`SELECT * FROM resources WHERE status = 'approved' ORDER BY hits DESC LIMIT 20`);
         return result;
       });
-      const result = rows.map(row => ({
-        ...row,
-        cloud_drives: typeof row.cloud_drives === 'string' ? (() => {
-          try { return JSON.parse(row.cloud_drives); } catch { return []; }
-        })() : (row.cloud_drives || [])
-      }));
+      const result = rows.map(parseRow);
       
       setCachedData('hotResources', result);
       res.json(result.slice(0, limit));
@@ -354,12 +344,7 @@ const createStatsRoutes = (authMiddleware, getCachedData, setCachedData) => {
         const [result] = await conn.query(`SELECT * FROM resources WHERE status = 'approved' ORDER BY updated_at DESC LIMIT 20`);
         return result;
       });
-      const result = rows.map(row => ({
-        ...row,
-        cloud_drives: typeof row.cloud_drives === 'string' ? (() => {
-          try { return JSON.parse(row.cloud_drives); } catch { return []; }
-        })() : (row.cloud_drives || [])
-      }));
+      const result = rows.map(parseRow);
       
       setCachedData('recentResources', result);
       res.json(result.slice(0, limit));

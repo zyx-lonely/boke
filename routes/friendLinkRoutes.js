@@ -27,6 +27,7 @@ const createFriendLinkRoutes = (authMiddleware, adminMiddleware) => {
   router.post('/api/admin/friend-links', authMiddleware, adminMiddleware, async (req, res) => {
     const { name, url, description, logo, sort_order, status } = req.body;
     if (!name || !url) return res.status(400).json({ message: '名称和链接不能为空' });
+    if (!/^https?:\/\/.+/.test(url)) return res.status(400).json({ message: '链接格式不正确' });
     try {
       const result = await withConn(async (conn) => {
         const [result] = await conn.query(
@@ -41,6 +42,8 @@ const createFriendLinkRoutes = (authMiddleware, adminMiddleware) => {
 
   router.put('/api/admin/friend-links/:id', authMiddleware, adminMiddleware, async (req, res) => {
     const { name, url, description, logo, sort_order, status } = req.body;
+    if (!name || !url) return res.status(400).json({ message: '名称和链接不能为空' });
+    if (!/^https?:\/\/.+/.test(url)) return res.status(400).json({ message: '链接格式不正确' });
     try {
       await withConn(async (conn) => {
         await conn.query(

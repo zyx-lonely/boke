@@ -211,9 +211,10 @@ function setupScrollAnimation() {
 
 const typewriterTexts = ['发现优秀的开源软件', '探索无限可能', '释放你的创造力', '构建美好未来']
 const displayText = ref('')
-let twIndex = 0, charIndex = 0, isDeleting = false, twTimer = null
+let twIndex = 0, charIndex = 0, isDeleting = false, twTimer = null, twRunning = true
 
 function typewriter() {
+  if (!twRunning) return
   const current = typewriterTexts[twIndex]
   displayText.value = isDeleting ? current.substring(0, charIndex - 1) : current.substring(0, charIndex + 1)
   charIndex += isDeleting ? -1 : 1
@@ -263,7 +264,7 @@ onMounted(async () => {
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
 onUnmounted(() => {
-  if (twTimer) clearTimeout(twTimer)
+  if (twTimer) { clearTimeout(twTimer); twRunning = false }
   if (carouselTimer) clearInterval(carouselTimer)
   if (observer) observer.disconnect()
   window.removeEventListener('scroll', handleScroll)

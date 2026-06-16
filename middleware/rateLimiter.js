@@ -58,7 +58,8 @@ class RateLimiter {
   }
 
   strict() {
-    return this;
+    const limiter = new RateLimiter(15 * 60 * 1000, 20);
+    return limiter.middleware();
   }
 }
 

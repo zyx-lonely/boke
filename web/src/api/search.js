@@ -1,6 +1,6 @@
 import request from './request'
 
 export const searchApi = {
-  search(q) { return request.get('/api/search', { params: { q } }).then(r => r.data) },
+  search(q, page = 1, limit = 20) { return request.get('/api/search', { params: { q, page, limit } }).then(r => r.data) },
   archive() { return request.get('/api/archive').then(r => r.data) },
 }

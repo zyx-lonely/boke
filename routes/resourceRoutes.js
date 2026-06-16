@@ -1,15 +1,7 @@
 const express = require('express');
 
 const { withConn } = require('../config/database');
-
-const parseRow = (row) => {
-  return {
-    ...row,
-    cloud_drives: typeof row.cloud_drives === 'string' ? (() => {
-      try { return JSON.parse(row.cloud_drives); } catch { return []; }
-    })() : (row.cloud_drives || [])
-  };
-};
+const parseRow = require('../utils/parseRow');
 
 const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
   const router = express.Router();
