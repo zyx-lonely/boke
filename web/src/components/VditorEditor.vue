@@ -39,11 +39,6 @@ onMounted(() => {
       filename: name => name.replace(/[^\w.-]/g, '_')
     },
     cache: { enable: false },
-    after: () => {
-      if (vditor) {
-        vditor.setValue(props.modelValue)
-      }
-    },
     input: (value) => {
       emit('update:modelValue', value)
     }

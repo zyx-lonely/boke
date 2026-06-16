@@ -6,7 +6,10 @@ const createSettingsRoutes = (pool, authMiddleware, adminMiddleware) => {
 
   router.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res, next) => {
     try {
-      const [rows] = await pool.query('SELECT `key`, `value` FROM settings');
+      const rows = await withConn(async (conn) => {
+        const [rows] = await conn.query('SELECT `key`, `value` FROM settings');
+        return rows;
+      });
       const settings = {};
       rows.forEach(r => { settings[r.key] = r.value });
       res.json(settings);
@@ -27,7 +30,10 @@ const createSettingsRoutes = (pool, authMiddleware, adminMiddleware) => {
 
   router.get('/api/settings', async (req, res, next) => {
     try {
-      const [rows] = await pool.query('SELECT `key`, `value` FROM settings');
+      const rows = await withConn(async (conn) => {
+        const [rows] = await conn.query('SELECT `key`, `value` FROM settings');
+        return rows;
+      });
       const settings = {};
       rows.forEach(r => { settings[r.key] = r.value });
       res.json(settings);

@@ -260,8 +260,9 @@ const createAuthRoutes = (pool, authMiddleware, adminMiddleware, logOperation, c
         await withConn(async (conn) => {
           const [old] = await conn.query('SELECT avatar FROM users WHERE id = ?', [req.user.id]);
           if (old.length > 0 && old[0].avatar && old[0].avatar.startsWith('/uploads/avatars/')) {
-            const oldPath = path.join(__dirname, '..', 'public', old[0].avatar);
-            if (fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
+            const baseDir = path.resolve(__dirname, '..', 'public', 'uploads', 'avatars');
+            const oldPath = path.resolve(baseDir, path.basename(old[0].avatar));
+            if (oldPath.startsWith(baseDir) && fs.existsSync(oldPath)) fs.unlinkSync(oldPath);
           }
           await conn.query('UPDATE users SET avatar = ? WHERE id = ?', [avatarUrl, req.user.id]);
         });

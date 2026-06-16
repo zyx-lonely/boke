@@ -77,6 +77,9 @@ const createTagRoutes = (pool, authMiddleware, adminMiddleware, logOperation, ge
         return res.status(404).json({ message: '资源不存在' });
       }
 
+      clearCache('tags:all');
+      clearCache(`resource_tags:${req.params.id}`);
+
       await logOperation(req, '更新资源标签', 'resource', req.params.id, { tag_ids });
 
       res.json({ ok: true, message: '标签更新成功' });

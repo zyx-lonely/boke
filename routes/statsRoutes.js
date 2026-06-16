@@ -85,10 +85,10 @@ const createStatsRoutes = (pool, authMiddleware, getCachedData, setCachedData) =
         `);
 
         const [dailyHits] = await conn.query(`
-          SELECT DATE(updated_at) as date, SUM(hits) as hits
+          SELECT DATE(created_at) as date, COUNT(*) as hits
           FROM resources
-          WHERE updated_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-          GROUP BY DATE(updated_at)
+          WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)
+          GROUP BY DATE(created_at)
           ORDER BY date ASC
         `);
 
