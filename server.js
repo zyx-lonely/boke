@@ -40,10 +40,11 @@ const captchaStore = new Map();
 const MAX_CAPTCHA_COUNT = 1000;
 
 const globalLimiter = new RateLimiter(15 * 60 * 1000, 10000);
+const globalLimiterMiddleware = globalLimiter.middleware();
 
 app.use((req, res, next) => {
   if (req.path.match(/\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|webp)$/)) return next();
-  return globalLimiter.middleware()(req, res, next);
+  return globalLimiterMiddleware(req, res, next);
 });
 
 const ALLOWED_ORIGINS = [
