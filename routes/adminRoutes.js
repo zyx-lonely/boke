@@ -3,18 +3,10 @@ const path = require('path');
 const multer = require('multer');
 const fs = require('fs');
 const XLSX = require('xlsx');
+const { withConn } = require('../config/database');
 
 const createAdminRoutes = (pool, authMiddleware, adminMiddleware, logOperation) => {
   const router = express.Router();
-
-  async function withConn(fn) {
-    const conn = await pool.getConnection();
-    try {
-      return await fn(conn);
-    } finally {
-      conn.release();
-    }
-  }
 
   const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
   fs.mkdirSync(uploadDir, { recursive: true });
