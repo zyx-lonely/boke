@@ -211,7 +211,6 @@ const importFormat = ref('json')
 const importData = ref('')
 const importLoading = ref(false)
 const importResult = ref(null)
-const previewUrl = ref('')
 
 const form = ref({ title: '', software_name: '', category_id: null, license: '', project_url: '', summary: '', content: '', status: 'pending', cloud_drives: [], tags: [] })
 const rules = {
