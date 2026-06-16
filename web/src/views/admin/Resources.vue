@@ -110,11 +110,7 @@
         </el-form-item>
         <el-form-item label="简介" prop="summary"><el-input v-model="form.summary" type="textarea" :rows="3" /></el-form-item>
         <el-form-item label="详细说明">
-          <el-input v-model="form.content" type="textarea" :rows="5" placeholder="支持 HTML 格式" />
-          <div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
-            <el-button size="small" @click="uploadImage">上传图片</el-button>
-            <img v-if="previewUrl" :src="previewUrl" style="max-height:80px;border-radius:4px;border:1px solid #ddd" />
-          </div>
+          <VditorEditor v-model="form.content" placeholder="输入详细说明（支持 Markdown）" :height="360" />
         </el-form-item>
         <el-form-item label="下载地址">
           <div class="drive-list">
