@@ -1,5 +1,12 @@
 const request = require('supertest');
+const jwt = require('jsonwebtoken');
 const app = require('../server');
+
+const testToken = jwt.sign(
+  { id: 1, username: 'testuser', role: 'user' },
+  process.env.JWT_SECRET,
+  { expiresIn: '1h' }
+);
 
 describe('评论接口测试', () => {
   describe('GET /api/comments', () => {
@@ -25,14 +32,28 @@ describe('评论接口测试', () => {
   });
 
   describe('POST /api/comments/:id/like', () => {
-    it('不存在的评论ID应返回404', async () => {
+    it('未登录应返回401', async () => {
       const response = await request(app).post('/api/comments/99999/like');
+      expect(response.status).toBe(401);
+    });
+
+    it('不存在的评论ID应返回404', async () => {
+      const response = await request(app)
+        .post('/api/comments/99999/like')
+        .set('Authorization', `Bearer ${testToken}`);
       expect(response.status).toBe(404);
       expect(response.body).toHaveProperty('error.message', '评论不存在');
     });
 
     it('有效的评论ID应成功点赞', async () => {
-      const response = await request(app).post('/api/comments/1/like');
+      const createRes = await request(app)
+        .post('/api/resources/1/comments')
+        .send({ username: 'testuser', content: '测试评论' });
+      const commentId = createRes.body.id;
+
+      const response = await request(app)
+        .post(`/api/comments/${commentId}/like`)
+        .set('Authorization', `Bearer ${testToken}`);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('ok', true);
       expect(response.body).toHaveProperty('likes');

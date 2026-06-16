@@ -36,8 +36,11 @@ class CommentController {
 
   async toggleLike(req, res, next) {
     try {
-      const { user_id } = req.body;
-      const result = await this.commentService.toggleLike(req.params.id, user_id || 0);
+      const userId = req.user?.id;
+      if (!userId) {
+        return res.status(401).json({ message: '请先登录' });
+      }
+      const result = await this.commentService.toggleLike(req.params.id, userId);
       res.json({ ok: true, ...result });
     } catch (error) {
       next(error);
