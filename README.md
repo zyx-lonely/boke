@@ -89,28 +89,13 @@ npm run dev:web
 
 访问 `http://localhost:3000`（生产模式）或 `http://localhost:5173`（开发模式）
 
-<<<<<<< HEAD
 ```
-├── config/        # 数据库、缓存、中间件配置
-├── controllers/   # 控制器
-├── middleware/    # 中间件（日志、限流、错误处理）
-├── routes/        # 路由
-├── services/      # 服务层
-├── public/        # 静态资源
-├── web/           # 管理后台前端（Vue 3）
-├── scripts/       # 脚本（数据库初始化等）
-├── test/          # 测试
-├── logs/          # 日志
-├── server.js      # 入口文件
-└── package.json
-```
+
 ## 起源
 纯属了解下Ai，制作下看看
 如有发现Bug, 或者有好的建议, 可以进行反馈, 欢迎各位大佬来指点一二
-## 测试
-=======
+
 ### 运行测试
->>>>>>> 2a10130 (auto sync 2026-06-16 09:00:16)
 
 ```bash
 npm test
