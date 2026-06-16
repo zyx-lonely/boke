@@ -3,7 +3,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
-const { withConn } = require('../config/database');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const { withConn, pool } = require('../config/database');
 const { sendMail } = require('../services/emailService');
 const passport = require('passport');
 const GitHubStrategy = require('passport-github2').Strategy;
@@ -340,34 +343,26 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
   });
 
   // 上传用户头像
-  router.post('/api/auth/avatar', authMiddleware, async (req, res) => {
-    const multer = require('multer');
-    const crypto = require('crypto');
-    const path = require('path');
-    const fs = require('fs');
-
-    const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'avatars');
-    fs.mkdirSync(uploadDir, { recursive: true });
-
-    const storage = multer.diskStorage({
+  const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'avatars');
+  fs.mkdirSync(uploadDir, { recursive: true });
+  const uploadAvatar = multer({
+    storage: multer.diskStorage({
       destination: (req, file, cb) => cb(null, uploadDir),
       filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
         const name = `avatar_${req.user.id}_${crypto.randomBytes(8).toString('hex')}${ext}`;
         cb(null, name);
       }
-    });
+    }),
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('image/')) cb(null, true);
+      else cb(new Error('只支持图片文件'));
+    }
+  });
 
-    const upload = multer({
-      storage,
-      limits: { fileSize: 2 * 1024 * 1024 },
-      fileFilter: (req, file, cb) => {
-        if (file.mimetype.startsWith('image/')) cb(null, true);
-        else cb(new Error('只支持图片文件'));
-      }
-    });
-
-    upload.single('avatar')(req, res, async (err) => {
+  router.post('/api/auth/avatar', authMiddleware, async (req, res) => {
+    uploadAvatar.single('avatar')(req, res, async (err) => {
       if (err) {
         return res.status(400).json({ message: err.message || '上传失败' });
       }

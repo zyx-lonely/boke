@@ -11,7 +11,7 @@
       </form>
       <p v-if="msg" class="msg success">{{ msg }}</p>
       <p v-if="err" class="msg error">{{ err }}</p>
-      <router-link to="/login" class="back-link">返回登录</router-link>
+      <router-link to="/" class="back-link">返回首页</router-link>
     </div>
   </div>
 </template>

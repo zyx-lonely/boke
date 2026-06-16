@@ -15,7 +15,6 @@ class LRUCache {
     }
     if (Date.now() - item.timestamp > this.maxAge) {
       this.cache.delete(key);
-      this.misses++;
       return null;
     }
     this.cache.delete(key);

@@ -95,7 +95,7 @@ async function loadData() {
 }
 
 async function handleSave() {
-  await formRef.value?.validate()
+  if (!await formRef.value?.validate()) return
   saveLoading.value = true
   try {
     if (editing.value) await categoryApi.update(editing.value.id, form.value)

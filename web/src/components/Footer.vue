@@ -3,7 +3,7 @@
     <div class="footer-inner">
       <div v-if="friendLinks.length" class="friend-links">
         <span class="fl-label">友情链接：</span>
-        <a v-for="link in friendLinks" :key="link.id" :href="link.url" target="_blank" rel="noopener" class="fl-item">{{ link.name }}</a>
+        <a v-for="link in friendLinks" :key="link.id" :href="link.url" target="_blank" rel="noopener noreferrer" class="fl-item">{{ link.name }}</a>
       </div>
       <p class="footer-copy">&copy; {{ new Date().getFullYear() }} {{ appStore.settings.footer_text || '分享优质开源软件资源' }}</p>
     </div>

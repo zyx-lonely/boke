@@ -1,4 +1,5 @@
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const { withConn } = require('../config/database');
 
 const createFavoriteRoutes = (authMiddleware) => {
@@ -20,6 +21,7 @@ const createFavoriteRoutes = (authMiddleware) => {
   router.get('/api/resources/:id/favorite/check', async (req, res) => {
     const rawToken = req.headers.authorization;
     const token = rawToken ? (rawToken.startsWith('Bearer ') ? rawToken.slice(7) : rawToken) : null;
+    const jwtSecret = process.env.JWT_SECRET;
 
     try {
       const result = await withConn(async (conn) => {
@@ -31,8 +33,6 @@ const createFavoriteRoutes = (authMiddleware) => {
         }
 
         try {
-          const jwtSecret = process.env.JWT_SECRET;
-          const jwt = require('jsonwebtoken');
           const decoded = jwt.verify(token, jwtSecret);
           const [existing] = await conn.query(`SELECT id FROM favorites WHERE user_id = ? AND resource_id = ?`, [decoded.id, req.params.id]);
           return { favorited: existing.length > 0, count };
@@ -90,7 +90,6 @@ const createFavoriteRoutes = (authMiddleware) => {
   });
 
   router.get('/api/favorites', async (req, res) => {
-    const jwt = require('jsonwebtoken');
     const jwtSecret = process.env.JWT_SECRET;
     const rawToken = req.headers.authorization;
     const token = rawToken ? (rawToken.startsWith('Bearer ') ? rawToken.slice(7) : rawToken) : null;

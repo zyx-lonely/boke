@@ -201,7 +201,7 @@ async function loadData() {
     resourceApi.hit(id).catch(()=>{})
     const favData = await favoriteApi.check(id).catch(()=>({favorited:false,count:0}))
     isFavorited.value = favData.favorited; favoriteCount.value = favData.count
-  } catch { ElMessage.error('加载失败') } finally { loading.value = false }
+  } catch { } finally { loading.value = false }
 }
 
 async function submitComment() {

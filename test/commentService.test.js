@@ -34,10 +34,12 @@ describe('CommentService', () => {
     it('should throw AppError on database error', async () => {
       connection.query.rejects(new Error('DB error'));
 
-      await assert.rejects(
-        service.getCommentsByResource(1),
-        AppError
-      );
+      try {
+        await service.getCommentsByResource(1);
+        assert.fail('Expected error');
+      } catch (err) {
+        assert(err instanceof AppError);
+      }
     });
   });
 
@@ -73,10 +75,10 @@ describe('CommentService', () => {
 
   describe('toggleLike', () => {
     it('should add like if not liked', async () => {
-      connection.query.onCall(0).resolves([[{ id: 1, likes: 0 }]]);
+      connection.query.onCall(0).resolves([[{ id: 1 }]]);
       connection.query.onCall(1).resolves([[]]);
       connection.query.onCall(2).resolves([{ insertId: 1 }]);
-      connection.query.onCall(3).resolves([{ affectedRows: 1 }]);
+      connection.query.onCall(3).resolves([[{ cnt: 1 }]]);
 
       const result = await service.toggleLike(1, 1);
 
@@ -84,10 +86,10 @@ describe('CommentService', () => {
     });
 
     it('should remove like if already liked', async () => {
-      connection.query.onCall(0).resolves([[{ id: 1, likes: 1 }]]);
+      connection.query.onCall(0).resolves([[{ id: 1 }]]);
       connection.query.onCall(1).resolves([[{ id: 1 }]]);
       connection.query.onCall(2).resolves([{ affectedRows: 1 }]);
-      connection.query.onCall(3).resolves([{ affectedRows: 1 }]);
+      connection.query.onCall(3).resolves([[{ cnt: 0 }]]);
 
       const result = await service.toggleLike(1, 1);
 

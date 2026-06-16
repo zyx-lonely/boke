@@ -67,6 +67,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import { adminApi } from '@/api/admin'
 
 const loading = ref(false)

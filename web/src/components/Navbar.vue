@@ -124,25 +124,22 @@ const showNotifications = ref(false)
 const notifRows = ref([])
 const unreadCount = ref(0)
 
-function updatePwStrength() {
-  const p = regForm.value.password
+function calcPwStrength(p) {
   let s = 0
   if (p.length >= 8) s++
   if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++
   if (/\d/.test(p)) s++
   if (/[^a-zA-Z0-9]/.test(p)) s++
   const map = { 0: ['', ''], 1: ['weak', '弱'], 2: ['medium', '中'], 3: ['strong', '强'], 4: ['very-strong', '非常强'] }
-  pwStrengthClass.value = map[s][0]; pwStrengthText.value = map[s][1]
+  return { cls: map[s][0], text: map[s][1] }
+}
+function updatePwStrength() {
+  const r = calcPwStrength(regForm.value.password)
+  pwStrengthClass.value = r.cls; pwStrengthText.value = r.text
 }
 function updatePwStrength2() {
-  const p = pwForm.value.newPassword
-  let s = 0
-  if (p.length >= 8) s++
-  if (/[a-z]/.test(p) && /[A-Z]/.test(p)) s++
-  if (/\d/.test(p)) s++
-  if (/[^a-zA-Z0-9]/.test(p)) s++
-  const map = { 0: ['', ''], 1: ['weak', '弱'], 2: ['medium', '中'], 3: ['strong', '强'], 4: ['very-strong', '非常强'] }
-  pwStrengthClass2.value = map[s][0]; pwStrengthText2.value = map[s][1]
+  const r = calcPwStrength(pwForm.value.newPassword)
+  pwStrengthClass2.value = r.cls; pwStrengthText2.value = r.text
 }
 
 function timeAgo(d) {
@@ -205,6 +202,8 @@ async function handleLogin() {
 
 async function handleRegister() {
   if (!regForm.value.username || !regForm.value.password) { regError.value = '请输入用户名和密码'; return }
+  if (regForm.value.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regForm.value.email)) { regError.value = '邮箱格式不正确'; return }
+  if (regForm.value.password.length < 8) { regError.value = '密码至少8位'; return }
   regLoading.value = true; regError.value = ''
   try {
     await userStore.register(regForm.value.username, regForm.value.email, regForm.value.password)

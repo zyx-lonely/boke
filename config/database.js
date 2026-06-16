@@ -5,7 +5,7 @@ const { logger } = require('../middleware/logger');
 const dbConfig = {
   host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'admin123',
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || 'boke',
   port: process.env.DB_PORT || 3306,
   waitForConnections: true,
@@ -228,6 +228,9 @@ async function initDatabase() {
     try {
       await conn.query(`ALTER TABLE users ADD COLUMN github_id VARCHAR(100) DEFAULT NULL AFTER verification_token`);
     } catch {}
+    try {
+      await conn.query(`ALTER TABLE comments ADD COLUMN \`likes\` INT DEFAULT 0 AFTER content`);
+    } catch {}
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -284,7 +287,6 @@ async function initDatabase() {
       const crypto = require('crypto');
       const defaultPassword = process.env.ADMIN_PASSWORD || crypto.randomBytes(12).toString('hex');
       console.log('创建默认管理员账号...');
-      console.log(`默认管理员密码: ${defaultPassword}`);
       const hashedPassword = await bcrypt.hash(defaultPassword, 12);
       await conn.query(`INSERT INTO users (username, password, email, role) VALUES (?, ?, ?, ?)`, ['admin', hashedPassword, 'admin@example.com', 'admin']);
     }

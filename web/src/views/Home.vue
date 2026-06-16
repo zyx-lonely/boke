@@ -180,9 +180,13 @@ function isNew(r) {
 }
 
 function heroMouseMove(e) {
-  const rect = e.currentTarget.getBoundingClientRect()
-  heroMouseX.value = (e.clientX - rect.left) / rect.width - 0.5
-  heroMouseY.value = (e.clientY - rect.top) / rect.height - 0.5
+  if (heroMouseMove._timer) return
+  heroMouseMove._timer = requestAnimationFrame(() => {
+    heroMouseMove._timer = null
+    const rect = e.currentTarget.getBoundingClientRect()
+    heroMouseX.value = (e.clientX - rect.left) / rect.width - 0.5
+    heroMouseY.value = (e.clientY - rect.top) / rect.height - 0.5
+  })
 }
 
 function scrollToTop() { window.scrollTo({ top: 0, behavior: 'smooth' }) }

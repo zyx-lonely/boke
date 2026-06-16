@@ -125,7 +125,7 @@ setInterval(() => {
   }
   if (loginAttempts.size > MAX_LOGIN_ATTEMPTS) {
     const entries = Array.from(loginAttempts.entries());
-    entries.sort((a, b) => a[1].count - b[1].count);
+    entries.sort((a, b) => (a[1].lastAttempt || 0) - (b[1].lastAttempt || 0));
     const toDelete = entries.slice(0, entries.length - MAX_LOGIN_ATTEMPTS);
     toDelete.forEach(([key]) => loginAttempts.delete(key));
   }

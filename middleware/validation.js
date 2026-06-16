@@ -32,7 +32,7 @@ const loginValidations = [
 const resourceValidations = [
   body('title').notEmpty().withMessage('标题不能为空'),
   body('summary').notEmpty().withMessage('简介不能为空'),
-  body('category').notEmpty().withMessage('分类不能为空')
+  body('category_id').notEmpty().withMessage('分类不能为空')
 ];
 
 module.exports = { 

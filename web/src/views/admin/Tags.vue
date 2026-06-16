@@ -10,7 +10,7 @@
           </div>
         </div>
       </template>
-      <div v-if="loading" v-loading="loading" style="height:100px"></div>
+      <div v-if="loading" style="height:100px"></div>
       <div v-else-if="items.length === 0" class="empty">暂无标签</div>
       <div v-else class="tag-list">
         <el-tag

@@ -4,10 +4,17 @@ const { withConn } = require('../config/database');
 const createRankingRoutes = (getCachedData, setCachedData) => {
   const router = express.Router();
 
+  const validOrderBy = {
+    views: 'r.hits DESC',
+    favorites: 'favorites_count DESC',
+    comments: 'comments_count DESC'
+  };
+
   router.get('/api/rankings', async (req, res) => {
     const type = req.query.type || 'views';
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const offset = parseInt(req.query.offset) || 0;
+    if (!validOrderBy[type]) return res.status(400).json({ message: '无效的排序类型' });
 
     const cacheKey = `rankings:${type}:${limit}:${offset}`;
     if (offset === 0 && getCachedData) {
@@ -15,13 +22,7 @@ const createRankingRoutes = (getCachedData, setCachedData) => {
       if (cached) return res.json(cached);
     }
 
-    const validOrderBy = {
-      views: 'r.hits DESC',
-      favorites: 'favorites_count DESC',
-      comments: 'comments_count DESC'
-    };
-
-    const orderBy = validOrderBy[type] || 'r.hits DESC';
+    const orderBy = validOrderBy[type];
 
     try {
       const rows = await withConn(async (conn) => {

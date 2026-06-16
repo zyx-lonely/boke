@@ -259,7 +259,7 @@ function addTag(val) {
 }
 
 async function handleSave() {
-  await formRef.value?.validate()
+  if (!await formRef.value?.validate()) return
   saveLoading.value = true
   try {
     if (editingResource.value) {

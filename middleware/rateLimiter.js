@@ -3,8 +3,7 @@ class RateLimiter {
     this.windowMs = windowMs;
     this.maxRequests = maxRequests;
     this.clients = new Map();
-
-    setInterval(() => {
+    this._timer = setInterval(() => {
       const now = Date.now();
       for (const [key, data] of this.clients) {
         if (now - data.windowStart > this.windowMs) {
@@ -12,6 +11,11 @@ class RateLimiter {
         }
       }
     }, 60000);
+  }
+
+  destroy() {
+    clearInterval(this._timer);
+    this.clients.clear();
   }
 
   getClientKey(req) {
@@ -54,8 +58,7 @@ class RateLimiter {
   }
 
   strict() {
-    const limiter = new RateLimiter(15 * 60 * 1000, 20);
-    return limiter.middleware();
+    return this;
   }
 }
 
