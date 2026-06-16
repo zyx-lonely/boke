@@ -24,7 +24,12 @@
             <h3>编辑资料</h3>
             <div class="form-row">
               <label>邮箱</label>
-              <input v-model="editEmail" class="form-input" placeholder="请输入邮箱" />
+              <div class="email-row">
+                <input v-model="editEmail" class="form-input" placeholder="请输入邮箱" />
+                <button v-if="user.email && !user.email_verified" class="btn btn-sm btn-outline" :disabled="sendingVerify" @click="resendVerify">
+                  {{ sendingVerify ? '发送中...' : '重新发送验证邮件' }}
+                </button>
+              </div>
             </div>
             <button class="btn btn-primary" :disabled="saveLoading" @click="saveProfile">{{ saveLoading ? '保存中...' : '保存' }}</button>
           </div>
@@ -61,6 +66,7 @@ const loading = ref(true)
 const user = ref(null)
 const editEmail = ref('')
 const saveLoading = ref(false)
+const sendingVerify = ref(false)
 const favoriteCount = ref(0)
 const commentCount = ref(0)
 
@@ -87,8 +93,18 @@ async function saveProfile() {
   try {
     await profileApi.update({ email: editEmail.value })
     user.value.email = editEmail.value
+    if (editEmail.value) { user.value.email_verified = 0 }
     ElMessage.success('保存成功')
   } catch { ElMessage.error('保存失败') } finally { saveLoading.value = false }
+}
+
+async function resendVerify() {
+  sendingVerify.value = true
+  try {
+    await profileApi.resendVerification()
+    ElMessage.success('验证邮件已发送，请查收')
+  } catch (e) { ElMessage.error(e?.response?.data?.message || '发送失败') }
+  finally { sendingVerify.value = false }
 }
 
 onMounted(loadData)
@@ -122,11 +138,16 @@ onMounted(loadData)
 .form-row { margin-bottom: 16px; }
 .form-row label { display: block; margin-bottom: 6px; font-weight: 500; color: #555; font-size: 14px; }
 .dark-mode .form-row label { color: #9ca3af; }
+.email-row { display: flex; gap: 8px; align-items: center; }
+.email-row .form-input { flex: 1; }
 .form-input { width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
 .dark-mode .form-input { background: #0f3460; border-color: #2d3a5f; color: #e0e0e0; }
 .form-input:focus { outline: none; border-color: #667eea; }
 .btn { padding: 10px 24px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
 .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; box-shadow: 0 4px 18px rgba(102,126,234,0.4); }
+.btn-sm { padding: 6px 14px; font-size: 12px; white-space: nowrap; }
+.btn-outline { background: transparent; border: 1px solid #667eea; color: #667eea; }
+.btn-outline:hover { background: #667eea; color: white; }
 .btn:disabled { opacity: 0.6; cursor: not-allowed; }
 .stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 .stat-card { padding: 24px; border-radius: 12px; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.2s; }

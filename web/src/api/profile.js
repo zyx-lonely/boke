@@ -5,4 +5,5 @@ export const profileApi = {
   update(data) { return request.put('/api/user/profile', data).then(r => r.data) },
   getComments() { return request.get('/api/user/comments').then(r => r.data) },
   getFavorites() { return request.get('/api/user/favorites').then(r => r.data) },
+  resendVerification() { return request.post('/api/user/resend-verification').then(r => r.data) },
 }
