@@ -1,13 +1,8 @@
 const express = require('express');
+const { withConn } = require('../config/database');
 
 const createSettingsRoutes = (pool, authMiddleware, adminMiddleware) => {
   const router = express.Router();
-
-  async function withConn(fn) {
-    const conn = await pool.getConnection();
-    try { return await fn(conn) }
-    finally { conn.release() }
-  }
 
   router.get('/api/admin/settings', authMiddleware, adminMiddleware, async (req, res, next) => {
     try {

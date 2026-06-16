@@ -51,8 +51,9 @@ JWT_SECRET=your_jwt_secret
 
 ### 初始化数据库
 
+数据库表会在服务启动时自动创建，无需手动初始化。
 ```bash
-node scripts/initDB.js
+# 数据库自动初始化，直接启动即可
 ```
 
 ### 启动
