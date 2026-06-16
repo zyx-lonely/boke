@@ -1,17 +1,9 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
+const { withConn } = require('../config/database');
 
 const createUserRoutes = (pool, authMiddleware, adminMiddleware, logOperation) => {
   const router = express.Router();
-
-  async function withConn(fn) {
-    const conn = await pool.getConnection();
-    try {
-      return await fn(conn);
-    } finally {
-      conn.release();
-    }
-  }
 
   router.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
     try {
