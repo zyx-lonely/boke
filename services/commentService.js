@@ -1,6 +1,7 @@
 const { logger } = require('../middleware/logger');
 const { AppError } = require('../middleware/errorHandler');
 const { sendCommentNotification } = require('./emailService');
+const { createNotification } = require('../routes/notificationRoutes');
 
 class CommentService {
   constructor(pool) {
@@ -44,6 +45,21 @@ class CommentService {
         `INSERT INTO comments (resource_id, username, email, content, parent_id, status) VALUES (?, ?, ?, ?, ?, ?)`,
         [resourceId, username, email, content, parentId, 'pending']
       );
+
+      if (parentId) {
+        try {
+          const [parentRows] = await conn.query('SELECT user_id, username FROM comments c JOIN users u ON c.username = u.username WHERE c.id = ?', [parentId]);
+          if (parentRows.length > 0 && parentRows[0].username !== username) {
+            const userId = parentRows[0].user_id;
+            const [resRows] = await conn.query('SELECT title FROM resources WHERE id = ?', [resourceId]);
+            const resTitle = resRows[0]?.title || '资源';
+            createNotification(this.pool, userId, 'comment_reply', `有人回复了您的评论`,
+              `${username} 回复了您在《${resTitle}》中的评论：${content?.slice(0, 100)}`,
+              `/detail/${resourceId}`);
+          }
+        } catch (e) { logger.warn('创建通知失败', { error: e.message }); }
+      }
+
       conn.release();
 
       return { id: result.insertId };

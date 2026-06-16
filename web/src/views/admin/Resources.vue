@@ -142,6 +142,7 @@
         </el-form-item>
         <el-form-item label="状态">
           <el-select v-model="form.status" style="width:100%">
+            <el-option label="草稿" value="draft" />
             <el-option label="待审核" value="pending" />
             <el-option label="已通过" value="approved" />
             <el-option label="已拒绝" value="rejected" />
@@ -219,10 +220,10 @@ const rules = {
 }
 
 function statusType(s) {
-  return { approved: 'success', pending: 'warning', rejected: 'danger' }[s] || 'info'
+  return { approved: 'success', pending: 'warning', rejected: 'danger', draft: 'info' }[s] || 'info'
 }
 function statusLabel(s) {
-  return { approved: '已通过', pending: '待审核', rejected: '已拒绝' }[s] || s
+  return { approved: '已通过', pending: '待审核', rejected: '已拒绝', draft: '草稿' }[s] || s
 }
 function onSelectionChange(rows) { selectedIds.value = rows.map(r => r.id) }
 

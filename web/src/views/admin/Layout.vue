@@ -85,6 +85,7 @@ const menuItems = [
   { path: '/admin/health', icon: '💓', label: '系统监控' },
   { path: '/admin/behavior', icon: '📈', label: '用户分析' },
   { path: '/admin/settings', icon: '⚙️', label: '系统设置' },
+  { path: '/admin/friend-links', icon: '🔗', label: '友情链接' },
 ]
 
 const currentTitle = computed(() => {

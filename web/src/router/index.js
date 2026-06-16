@@ -47,6 +47,16 @@ const routes = [
     component: () => import('@/views/VerifyEmail.vue'),
   },
   {
+    path: '/search',
+    name: 'Search',
+    component: () => import('@/views/Search.vue'),
+  },
+  {
+    path: '/archive',
+    name: 'Archive',
+    component: () => import('@/views/Archive.vue'),
+  },
+  {
     path: '/admin',
     component: () => import('@/views/admin/Layout.vue'),
     redirect: '/admin/dashboard',
@@ -62,6 +72,7 @@ const routes = [
       { path: 'health', name: 'AdminHealth', component: () => import('@/views/admin/Health.vue') },
       { path: 'behavior',    name: 'AdminBehavior',    component: () => import('@/views/admin/Behavior.vue') },
       { path: 'settings',    name: 'AdminSettings',    component: () => import('@/views/admin/Settings.vue') },
+      { path: 'friend-links', name: 'AdminFriendLinks', component: () => import('@/views/admin/FriendLinks.vue') },
     ],
   },
 ]

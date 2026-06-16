@@ -5,10 +5,34 @@ const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
 const { withConn } = require('../config/database');
 const { sendMail } = require('../services/emailService');
+const passport = require('passport');
+const GitHubStrategy = require('passport-github2').Strategy;
 
 async function getSetting(conn, key) {
   const [rows] = await conn.query('SELECT `value` FROM settings WHERE `key` = ?', [key]);
   return rows.length > 0 ? rows[0].value : null;
+}
+
+if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+  passport.use(new GitHubStrategy({
+    clientID: process.env.GITHUB_CLIENT_ID,
+    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+    callbackURL: process.env.GITHUB_CALLBACK_URL || '/api/auth/github/callback'
+  }, async (accessToken, refreshToken, profile, done) => {
+    try {
+      const { pool } = require('../config/database');
+      const [rows] = await pool.query('SELECT * FROM users WHERE github_id = ?', [profile.id]);
+      if (rows.length > 0) return done(null, rows[0]);
+      const username = profile.username || `github_${profile.id}`;
+      const email = profile.emails?.[0]?.value || null;
+      const [result] = await pool.query(
+        'INSERT INTO users (username, email, github_id, role, status, email_verified) VALUES (?, ?, ?, ?, ?, ?)',
+        [username, email, profile.id, 'user', 'active', email ? 1 : 0]
+      );
+      const [user] = await pool.query('SELECT * FROM users WHERE id = ?', [result.insertId]);
+      done(null, user[0]);
+    } catch (e) { done(e); }
+  }));
 }
 
 const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts) => {
@@ -62,6 +86,19 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
 
     res.type('svg').setHeader('X-Captcha-Key', captchaKey).send(captcha.data);
   });
+
+  if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+    router.get('/api/auth/github', (req, res, next) => {
+      passport.authenticate('github', { scope: ['user:email'], session: false })(req, res, next);
+    });
+    router.get('/api/auth/github/callback', (req, res, next) => {
+      passport.authenticate('github', { session: false, failureRedirect: '/login' }, (err, user) => {
+        if (err || !user) return res.redirect('/login');
+        const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        res.redirect(`/?token=${token}`);
+      })(req, res, next);
+    });
+  }
 
   function verifyCaptcha(req, res) {
     const { captcha, captchaKey } = req.body;

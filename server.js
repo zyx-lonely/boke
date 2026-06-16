@@ -33,6 +33,12 @@ const createTagRoutes = require('./routes/tagRoutes');
 const createImportExportRoutes = require('./routes/importExportRoutes');
 const createSettingsRoutes = require('./routes/settingsRoutes');
 const createProfileRoutes = require('./routes/profileRoutes');
+const createSearchRoutes = require('./routes/searchRoutes');
+const createRssRoutes = require('./routes/rssRoutes');
+const createFriendLinkRoutes = require('./routes/friendLinkRoutes');
+const { createNotificationRoutes } = require('./routes/notificationRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./swagger');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -141,6 +147,11 @@ app.use(createTagRoutes(authMiddleware, adminMiddleware, logOperation, getCached
 app.use(createImportExportRoutes(authMiddleware, editorMiddleware, logOperation));
 app.use(createSettingsRoutes(authMiddleware, adminMiddleware));
 app.use(createProfileRoutes(authMiddleware));
+app.use(createSearchRoutes());
+app.use(createRssRoutes());
+app.use(createFriendLinkRoutes(authMiddleware, adminMiddleware));
+app.use(createNotificationRoutes(authMiddleware));
+app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

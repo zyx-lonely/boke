@@ -225,6 +225,9 @@ async function initDatabase() {
     try {
       await conn.query(`ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) DEFAULT NULL AFTER email_verified`);
     } catch {}
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN github_id VARCHAR(100) DEFAULT NULL AFTER verification_token`);
+    } catch {}
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS password_reset_tokens (
@@ -237,6 +240,40 @@ async function initDatabase() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        type VARCHAR(50) NOT NULL DEFAULT 'comment_reply',
+        title VARCHAR(255) NOT NULL,
+        content TEXT,
+        link VARCHAR(500),
+        read TINYINT(1) DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS friend_links (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(100) NOT NULL,
+        url VARCHAR(500) NOT NULL,
+        description VARCHAR(255),
+        logo VARCHAR(500),
+        sort_order INT DEFAULT 0,
+        status ENUM('active', 'disabled') DEFAULT 'active',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    try {
+      await conn.query(`ALTER TABLE resources MODIFY COLUMN status ENUM('draft', 'pending', 'approved', 'rejected') DEFAULT 'pending'`);
+    } catch {}
+    try {
+      await conn.query(`CREATE FULLTEXT INDEX ft_resources ON resources(title, summary, content)`);
+    } catch {}
 
     await createIndexes(conn);
 
