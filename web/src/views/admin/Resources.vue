@@ -185,6 +185,7 @@ import { tagApi } from '@/api/tag'
 import { adminApi } from '@/api/admin'
 import request from '@/api/request'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import VditorEditor from '@/components/VditorEditor.vue'
 
 const loading = ref(false)
 const items = ref([])
