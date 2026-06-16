@@ -1,16 +1,8 @@
 const express = require('express');
+const { withConn } = require('../config/database');
 
 const createRankingRoutes = (pool) => {
   const router = express.Router();
-
-  async function withConn(fn) {
-    const conn = await pool.getConnection();
-    try {
-      return await fn(conn);
-    } finally {
-      conn.release();
-    }
-  }
 
   router.get('/api/rankings', async (req, res) => {
     const type = req.query.type || 'views';
