@@ -185,6 +185,25 @@ async function initDatabase() {
         updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
       ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
     `);
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS tags (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        name VARCHAR(50) UNIQUE NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS resource_tags (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        resource_id INT NOT NULL,
+        tag_id INT NOT NULL,
+        UNIQUE KEY unique_resource_tag (resource_id, tag_id),
+        FOREIGN KEY (resource_id) REFERENCES resources(id) ON DELETE CASCADE,
+        FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     await conn.query(`INSERT IGNORE INTO settings (\`key\`, \`value\`) VALUES
       ('site_name', '资源分享博客'),
       ('site_description', '分享优质开源软件资源'),
