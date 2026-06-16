@@ -256,7 +256,10 @@ async function createIndexes(conn) {
     `CREATE INDEX idx_operation_logs_user ON operation_logs(user_id)`,
     `CREATE INDEX idx_ratings_resource ON ratings(resource_id)`,
     `CREATE INDEX idx_subscriptions_user ON subscriptions(user_id)`,
-    `CREATE INDEX idx_reports_status ON reports(status)`
+    `CREATE INDEX idx_reports_status ON reports(status)`,
+    `CREATE INDEX idx_tags_name ON tags(name)`,
+    `CREATE INDEX idx_resource_tags_resource ON resource_tags(resource_id)`,
+    `CREATE INDEX idx_resource_tags_tag ON resource_tags(tag_id)`
   ];
 
   for (const sql of indexes) {
