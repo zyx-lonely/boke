@@ -8,7 +8,7 @@ const createProfileRoutes = (authMiddleware) => {
     try {
       const rows = await withConn(async (conn) => {
         const [rows] = await conn.query(
-          'SELECT id, username, email, avatar, role, status, created_at FROM users WHERE id = ?',
+          'SELECT id, username, email, email_verified, avatar, role, status, created_at FROM users WHERE id = ?',
           [req.user.id]
         );
         return rows;

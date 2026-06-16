@@ -9,5 +9,8 @@ export const settingsApi = {
   },
   update(data) {
     return request.put('/api/admin/settings', data).then(r => r.data)
+  },
+  testEmail(email, settings) {
+    return request.post('/api/admin/settings/test-email', { email, settings }).then(r => r.data)
   }
 }

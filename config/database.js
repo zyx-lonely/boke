@@ -219,6 +219,25 @@ async function initDatabase() {
       ('smtp_from', '')
     `);
 
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN email_verified TINYINT(1) DEFAULT 0 AFTER email`);
+    } catch {}
+    try {
+      await conn.query(`ALTER TABLE users ADD COLUMN verification_token VARCHAR(255) DEFAULT NULL AFTER email_verified`);
+    } catch {}
+
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS password_reset_tokens (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        user_id INT NOT NULL,
+        token VARCHAR(255) NOT NULL,
+        expires_at DATETIME NOT NULL,
+        used TINYINT(1) DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+    `);
+
     await createIndexes(conn);
 
     await migrateResources(conn);

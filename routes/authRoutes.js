@@ -4,6 +4,12 @@ const jwt = require('jsonwebtoken');
 const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
 const { withConn } = require('../config/database');
+const { sendMail } = require('../services/emailService');
+
+async function getSetting(conn, key) {
+  const [rows] = await conn.query('SELECT `value` FROM settings WHERE `key` = ?', [key]);
+  return rows.length > 0 ? rows[0].value : null;
+}
 
 const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts) => {
   const router = express.Router();
@@ -120,6 +126,21 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
           VALUES (?, ?, ?, 'user', 'active')
         `, [username, hashedPassword, email]);
 
+        if (email) {
+          const token = crypto.randomBytes(32).toString('hex');
+          await conn.query('UPDATE users SET verification_token = ? WHERE id = ?', [token, result.insertId]);
+          const siteUrl = (await getSetting(conn, 'site_url')) || `${req.protocol}://${req.get('host')}`;
+          const verifyUrl = `${siteUrl}/verify-email?token=${token}`;
+          sendMail(pool, email, '验证您的邮箱', `
+            <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+              <h2 style="color:#667eea">邮箱验证</h2>
+              <p>您好 <strong>${username}</strong>，</p>
+              <p>请点击下方链接验证您的邮箱：</p>
+              <a href="${verifyUrl}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-decoration:none;border-radius:10px;margin:16px 0">验证邮箱</a>
+              <p style="color:#999;font-size:13px">链接有效期为24小时，如非本人操作请忽略。</p>
+            </div>`).catch(e => logger.warn('发送验证邮件失败', { error: e.message }));
+        }
+
         const token = jwt.sign({ id: result.insertId, username, role: 'user' }, jwtSecret, { expiresIn: '7d' });
 
         req.user = { id: result.insertId, username };
@@ -133,6 +154,70 @@ const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captcha
     } catch (error) {
       res.status(500).json({ message: '注册失败' });
     }
+  });
+
+  router.get('/api/auth/verify-email', async (req, res) => {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ message: '缺少验证令牌' });
+    try {
+      const [rows] = await withConn(async (conn) => {
+        const [rows] = await conn.query('SELECT id, email_verified FROM users WHERE verification_token = ?', [token]);
+        return rows;
+      });
+      if (rows.length === 0) return res.status(400).json({ message: '无效的验证链接' });
+      if (rows[0].email_verified) return res.json({ message: '邮箱已验证，无需重复验证' });
+      await withConn(async (conn) => {
+        await conn.query('UPDATE users SET email_verified = 1, verification_token = NULL WHERE id = ?', [rows[0].id]);
+      });
+      res.json({ message: '邮箱验证成功' });
+    } catch { res.status(500).json({ message: '验证失败' }); }
+  });
+
+  router.post('/api/auth/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: '请输入邮箱' });
+    try {
+      await withConn(async (conn) => {
+        const [users] = await conn.query('SELECT id, username FROM users WHERE email = ? AND status = "active"', [email]);
+        if (users.length === 0) return; // 不暴露用户是否存在
+        const user = users[0];
+        const token = crypto.randomBytes(32).toString('hex');
+        const expiresAt = new Date(Date.now() + 3600000).toISOString().slice(0, 19).replace('T', ' ');
+        await conn.query('INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)', [user.id, token, expiresAt]);
+        const siteUrl = (await getSetting(conn, 'site_url')) || `${req.protocol}://${req.get('host')}`;
+        const resetUrl = `${siteUrl}/reset-password?token=${token}`;
+        sendMail(pool, email, '重置密码', `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:20px">
+            <h2 style="color:#667eea">重置密码</h2>
+            <p>您好 <strong>${user.username}</strong>，</p>
+            <p>请点击下方链接重置您的密码：</p>
+            <a href="${resetUrl}" style="display:inline-block;padding:12px 28px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;text-decoration:none;border-radius:10px;margin:16px 0">重置密码</a>
+            <p style="color:#999;font-size:13px">链接有效期为1小时，如非本人操作请忽略。</p>
+          </div>`).catch(e => logger.warn('发送重置密码邮件失败', { error: e.message }));
+      });
+      res.json({ message: '如果该邮箱已注册，将收到重置密码邮件' });
+    } catch { res.status(500).json({ message: '发送失败' }); }
+  });
+
+  router.post('/api/auth/reset-password', async (req, res) => {
+    const { token, password } = req.body;
+    if (!token || !password) return res.status(400).json({ message: '缺少参数' });
+    const passwordError = validatePassword(password);
+    if (passwordError) return res.status(400).json({ message: passwordError });
+    try {
+      const [tokens] = await withConn(async (conn) => {
+        const [tokens] = await conn.query(
+          'SELECT * FROM password_reset_tokens WHERE token = ? AND used = 0 AND expires_at > NOW()', [token]
+        );
+        if (tokens.length === 0) return [];
+        const hashedPassword = await bcrypt.hash(password, 12);
+        await conn.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, tokens[0].user_id]);
+        await conn.query('UPDATE password_reset_tokens SET used = 1 WHERE id = ?', [tokens[0].id]);
+        return tokens;
+      });
+      if (tokens.length === 0) return res.status(400).json({ message: '链接无效或已过期' });
+      res.json({ message: '密码重置成功' });
+    } catch { res.status(500).json({ message: '重置失败' }); }
   });
 
   router.post('/api/auth/login', async (req, res) => {

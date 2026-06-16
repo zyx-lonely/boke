@@ -61,7 +61,11 @@
         <div class="form-group"><label>用户名</label><input v-model="loginForm.username" placeholder="请输入用户名" @keyup.enter="handleLogin"></div>
         <div class="form-group"><label>密码</label><input v-model="loginForm.password" type="password" placeholder="请输入密码" @keyup.enter="handleLogin"></div>
         <button class="btn btn-primary btn-block" @click="handleLogin" :disabled="loginLoading">{{ loginLoading?'登录中...':'登录' }}</button>
-        <p style="text-align:center;margin-top:15px;font-size:13px;color:#999">还没有账号？<a href="#" @click.prevent="showLogin=false;showRegister=true">立即注册</a></p>
+        <p style="text-align:center;margin-top:15px;font-size:13px;color:#999">
+          <a href="#" @click.prevent="showLogin=false;showRegister=true">立即注册</a>
+          <span style="margin:0 8px">|</span>
+          <router-link to="/forgot-password" @click="showLogin=false">忘记密码</router-link>
+        </p>
         <button class="btn btn-secondary btn-block" @click="showLogin=false">取消</button>
       </div>
     </div>
@@ -182,7 +186,12 @@ async function handleRegister() {
   regLoading.value = true; regError.value = ''
   try {
     await userStore.register(regForm.value.username, regForm.value.email, regForm.value.password)
-    showRegister.value = false; ElMessage.success('注册成功')
+    showRegister.value = false;
+    if (regForm.value.email) {
+      ElMessage.success('注册成功！验证邮件已发送至您的邮箱，请查收验证')
+    } else {
+      ElMessage.success('注册成功')
+    }
     regForm.value = { username: '', email: '', password: '' }
   } catch (e) { regError.value = e?.response?.data?.message || '注册失败' }
   finally { regLoading.value = false }

@@ -14,4 +14,7 @@ export const authApi = {
   changePassword: (oldPassword, newPassword) => request.post('/api/auth/change-password', { oldPassword, newPassword }).then(r => r.data),
   adminLogin: (data) => request.post('/api/admin/login', data).then(r => r.data),
   adminMe: () => request.get('/api/admin/me').then(r => r.data),
+  forgotPassword: (email) => request.post('/api/auth/forgot-password', { email }).then(r => r.data),
+  resetPassword: (token, password) => request.post('/api/auth/reset-password', { token, password }).then(r => r.data),
+  verifyEmail: (token) => request.get('/api/auth/verify-email', { params: { token } }).then(r => r.data),
 }

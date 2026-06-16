@@ -10,7 +10,11 @@
             <span class="role-tag" :class="user.role">{{ roleLabel }}</span>
           </div>
           <div class="profile-meta">
-            <div class="meta-item"><span>邮箱</span><span>{{ user.email || '未设置' }}</span></div>
+            <div class="meta-item"><span>邮箱</span><span>{{ user.email || '未设置' }}
+              <span v-if="user.email" :class="user.email_verified ? 'verified' : 'unverified'">
+                {{ user.email_verified ? '已验证' : '未验证' }}
+              </span>
+            </span></div>
             <div class="meta-item"><span>注册时间</span><span>{{ formatDate(user.created_at) }}</span></div>
           </div>
         </div>
@@ -130,6 +134,8 @@ onMounted(loadData)
 .dark-mode .stat-card { background: #0f3460; }
 .stat-num { display: block; font-size: 2rem; font-weight: 700; color: #667eea; }
 .stat-label { display: block; font-size: 13px; color: #999; margin-top: 4px; }
+.verified { display:inline-block;padding:1px 8px;border-radius:8px;background:#f0f9eb;color:#67c23a;font-size:11px;margin-left:6px; }
+.unverified { display:inline-block;padding:1px 8px;border-radius:8px;background:#fdf6ec;color:#e6a23c;font-size:11px;margin-left:6px; }
 
 @media (max-width: 600px) {
   .profile-header { flex-direction: column; text-align: center; }

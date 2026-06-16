@@ -32,6 +32,21 @@ const routes = [
     component: () => import('@/views/MyComments.vue'),
   },
   {
+    path: '/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/ForgotPassword.vue'),
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('@/views/ResetPassword.vue'),
+  },
+  {
+    path: '/verify-email',
+    name: 'VerifyEmail',
+    component: () => import('@/views/VerifyEmail.vue'),
+  },
+  {
     path: '/admin',
     component: () => import('@/views/admin/Layout.vue'),
     redirect: '/admin/dashboard',
