@@ -369,26 +369,6 @@ async function autoFillFromUrl() {
   } catch { ElMessage.error('自动填写失败') }
 }
 
-async function uploadImage() {
-  const input = document.createElement('input')
-  input.type = 'file'; input.accept = 'image/*'
-  input.onchange = async (e) => {
-    const file = e.target.files[0]; if (!file) return
-    previewUrl.value = URL.createObjectURL(file)
-    const fd = new FormData(); fd.append('images', file)
-    try {
-      const res = await adminApi.upload(fd)
-      if (res?.files?.length) {
-        form.value.content += (form.value.content ? '\n' : '') + `<img src="${res.files[0].url}" style="max-width:100%">`
-        URL.revokeObjectURL(previewUrl.value)
-        previewUrl.value = ''
-        ElMessage.success('图片已插入')
-      }
-    } catch { ElMessage.error('上传失败'); URL.revokeObjectURL(previewUrl.value); previewUrl.value = '' }
-  }
-  input.click()
-}
-
 function openImportDialog() { importDialogVisible.value = true; importData.value = ''; importResult.value = null }
 function downloadSample(format) {
   const sample = format === 'json'
