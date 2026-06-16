@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createRankingRoutes = (pool, getCachedData, setCachedData) => {
+const createRankingRoutes = (getCachedData, setCachedData) => {
   const router = express.Router();
 
   router.get('/api/rankings', async (req, res) => {

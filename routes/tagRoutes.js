@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createTagRoutes = (pool, authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
+const createTagRoutes = (authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
   const router = express.Router();
 
   router.get('/api/tags', async (req, res) => {

@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const { withConn } = require('../config/database');
 
-const createUserRoutes = (pool, authMiddleware, adminMiddleware, logOperation) => {
+const createUserRoutes = (authMiddleware, adminMiddleware, logOperation) => {
   const router = express.Router();
 
   router.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {

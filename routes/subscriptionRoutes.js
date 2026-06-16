@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createSubscriptionRoutes = (pool, authMiddleware) => {
+const createSubscriptionRoutes = (authMiddleware) => {
   const router = express.Router();
 
   router.post('/api/subscriptions', authMiddleware, async (req, res) => {

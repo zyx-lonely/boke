@@ -124,21 +124,21 @@ setInterval(() => {
   }
 }, 60000);
 
-app.use(createAuthRoutes(pool, authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts));
+app.use(createAuthRoutes(authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts));
 app.use(createCommentRoutes(pool, authMiddleware, adminMiddleware));
-app.use(createUserRoutes(pool, authMiddleware, adminMiddleware, logOperation));
-app.use(createResourceRoutes(pool, authMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache));
-app.use(createCategoryRoutes(pool, authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
-app.use(createStatsRoutes(pool, authMiddleware, getCachedData, setCachedData));
-app.use(createFavoriteRoutes(pool, authMiddleware));
-app.use(createRankingRoutes(pool, getCachedData, setCachedData));
-app.use(createSubscriptionRoutes(pool, authMiddleware));
-app.use(createRatingRoutes(pool, authMiddleware));
-app.use(createReportRoutes(pool, authMiddleware));
-app.use(createAdminRoutes(pool, authMiddleware, adminMiddleware, logOperation));
-app.use(createTagRoutes(pool, authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
-app.use(createImportExportRoutes(pool, authMiddleware, editorMiddleware, logOperation));
-app.use(createSettingsRoutes(pool, authMiddleware, adminMiddleware));
+app.use(createUserRoutes(authMiddleware, adminMiddleware, logOperation));
+app.use(createResourceRoutes(authMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache));
+app.use(createCategoryRoutes(authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
+app.use(createStatsRoutes(authMiddleware, getCachedData, setCachedData));
+app.use(createFavoriteRoutes(authMiddleware));
+app.use(createRankingRoutes(getCachedData, setCachedData));
+app.use(createSubscriptionRoutes(authMiddleware));
+app.use(createRatingRoutes(authMiddleware));
+app.use(createReportRoutes(authMiddleware));
+app.use(createAdminRoutes(authMiddleware, adminMiddleware, logOperation));
+app.use(createTagRoutes(authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache));
+app.use(createImportExportRoutes(authMiddleware, editorMiddleware, logOperation));
+app.use(createSettingsRoutes(authMiddleware, adminMiddleware));
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

@@ -5,7 +5,7 @@ const svgCaptcha = require('svg-captcha');
 const crypto = require('crypto');
 const { withConn } = require('../config/database');
 
-const createAuthRoutes = (pool, authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts) => {
+const createAuthRoutes = (authMiddleware, adminMiddleware, logOperation, captchaStore, loginAttempts) => {
   const router = express.Router();
   const jwtSecret = process.env.JWT_SECRET;
   const loginAttemptLimit = parseInt(process.env.LOGIN_ATTEMPT_LIMIT) || 5;

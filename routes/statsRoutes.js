@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createStatsRoutes = (pool, authMiddleware, getCachedData, setCachedData) => {
+const createStatsRoutes = (authMiddleware, getCachedData, setCachedData) => {
   const router = express.Router();
 
   router.get('/api/admin/stats', authMiddleware, async (req, res) => {
@@ -153,10 +153,11 @@ const createStatsRoutes = (pool, authMiddleware, getCachedData, setCachedData) =
       
       // 数据库连接
       try {
-        const conn = await pool.getConnection();
-        const [rows] = await conn.query('SELECT 1 as ok');
-        conn.release();
-        health.database = { status: 'connected', latency: Date.now() };
+        const conn = await withConn(async (conn) => {
+          await conn.query('SELECT 1 as ok');
+          return true;
+        });
+        health.database = { status: 'connected' };
       } catch (e) {
         health.database = { status: 'error', message: e.message };
       }

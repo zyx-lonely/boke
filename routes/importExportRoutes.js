@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createImportExportRoutes = (pool, authMiddleware, editorMiddleware, logOperation) => {
+const createImportExportRoutes = (authMiddleware, editorMiddleware, logOperation) => {
   const router = express.Router();
 
   function parseCSV(text) {

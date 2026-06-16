@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createFavoriteRoutes = (pool, authMiddleware) => {
+const createFavoriteRoutes = (authMiddleware) => {
   const router = express.Router();
 
   function parseRow(row) {

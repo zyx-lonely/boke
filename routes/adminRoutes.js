@@ -5,7 +5,7 @@ const fs = require('fs');
 const XLSX = require('xlsx');
 const { withConn } = require('../config/database');
 
-const createAdminRoutes = (pool, authMiddleware, adminMiddleware, logOperation) => {
+const createAdminRoutes = (authMiddleware, adminMiddleware, logOperation) => {
   const router = express.Router();
 
   const uploadDir = path.join(__dirname, '..', 'public', 'uploads');

@@ -11,7 +11,7 @@ const parseRow = (row) => {
   };
 };
 
-const createResourceRoutes = (pool, authMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
+const createResourceRoutes = (authMiddleware, editorMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
   const router = express.Router();
 
   router.get('/api/resources', async (req, res) => {

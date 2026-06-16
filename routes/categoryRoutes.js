@@ -1,7 +1,7 @@
 const express = require('express');
 const { withConn } = require('../config/database');
 
-const createCategoryRoutes = (pool, authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
+const createCategoryRoutes = (authMiddleware, adminMiddleware, logOperation, getCachedData, setCachedData, clearCache) => {
   const router = express.Router();
 
   router.get('/api/categories', async (req, res) => {
