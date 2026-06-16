@@ -122,7 +122,7 @@ const createAuthRoutes = (pool, authMiddleware, adminMiddleware, logOperation, c
 
         const token = jwt.sign({ id: result.insertId, username, role: 'user' }, jwtSecret, { expiresIn: '7d' });
 
-        await logOperation({ user: { id: result.insertId, username } }, '注册', 'user', result.insertId, { username });
+        await logOperation(req, '注册', 'user', result.insertId, { username });
 
         res.status(201).json({
           token,
@@ -187,7 +187,7 @@ const createAuthRoutes = (pool, authMiddleware, adminMiddleware, logOperation, c
 
       const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, jwtSecret, { expiresIn: '7d' });
 
-      await logOperation({ user }, '登录', 'user', user.id, { username });
+      await logOperation(req, '登录', 'user', user.id, { username });
 
       res.json({
         token,
